@@ -113,6 +113,15 @@ const CUSTOM_STEMS = [
     image: '/flower/whiterose.png',
     color: '#f8fafc',
     emoji: '🤍'
+  },
+  {
+    id: 'flower-sunflower',
+    name: 'Golden Sunlight Bloom',
+    category: 'Joyful Radiance',
+    meaning: 'Bright warmth, adoration & unconditional joy',
+    image: '/flower/sunflower.png',
+    color: '#f59e0b',
+    emoji: '🌻'
   }
 ]
 
@@ -444,14 +453,39 @@ export default function App() {
   // Generate shareable URL with parameters pointing to Type Garden
   const getShareUrl = () => {
     if (typeof window === 'undefined') return ''
-    const stemsData = customStems.filter((s) => s.count > 0).map((s) => ({ id: s.id, count: s.count }))
     const params = new URLSearchParams()
     params.set('to', recipientName || 'Kenes')
     params.set('from', senderName || 'Radleigh')
     params.set('note', loveNote)
     params.set('wrap', selectedWrapId)
-    params.set('preset', selectedPreset?.id?.replace('preset-', '') || 'rose')
-    params.set('stems', JSON.stringify(stemsData))
+
+    if (selectedPreset) {
+      // Signature Masterpiece Bouquet chosen from Gallery
+      const presetClean = selectedPreset.id.replace('preset-', '')
+      params.set('preset', presetClean)
+    } else {
+      // Custom Handcrafted Bouquet created in Atelier
+      params.set('preset', 'custom')
+      const stemsData = customStems.filter((s) => s.count > 0).map((s) => ({ id: s.id, count: s.count }))
+      params.set('stems', JSON.stringify(stemsData))
+      // Identify dominant flower in custom selection
+      if (stemsData.length > 0) {
+        let maxCount = -1
+        let topStem = null
+        stemsData.forEach((s) => {
+          if (s.count > maxCount) {
+            maxCount = s.count
+            topStem = s
+          }
+        })
+        if (topStem) {
+          if (topStem.id.includes('sunflower') || topStem.id.includes('sun')) params.set('dominant', 'sunflower')
+          else if (topStem.id.includes('lily')) params.set('dominant', 'lily')
+          else if (topStem.id.includes('tulip')) params.set('dominant', 'tulip')
+          else params.set('dominant', 'rose')
+        }
+      }
+    }
     return `${window.location.origin}/garden.html?${params.toString()}`
   }
 
@@ -2016,7 +2050,7 @@ export default function App() {
                         {/* Standalone Type Garden Canvas Container */}
                         <div className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-4 border-[#841b2d]/20 bg-black" style={{ height: 'min(82vh, 760px)', minHeight: '680px' }}>
                           <iframe
-                            src={`/garden.html?to=${encodeURIComponent(recipientName || 'My Love')}&from=${encodeURIComponent(senderName)}&note=${encodeURIComponent(loveNote)}&wrap=${selectedWrapId}&preset=${selectedPreset?.id?.replace('preset-', '') || 'rose'}`}
+                            src={getShareUrl()}
                             className="w-full h-full border-0"
                             title="Type Garden Botanical Generator"
                             allow="clipboard-write"

@@ -1880,29 +1880,59 @@
         document.title = `For ${recipientTo} • Botanical Gift`;
       }
 
-      // Smart Bouquet Preset Detection: check preset and custom stems
-      let detectedPreset = bouquetPreset;
-      try {
-        const stemsParam = urlParams.get('stems');
-        if (stemsParam && (!urlParams.get('preset') || bouquetPreset === 'custom' || bouquetPreset === 'rose')) {
+      // Bouquet Resolution: Exact preset OR dominant custom flower
+      const rawPreset = (urlParams.get('preset') || '').toLowerCase().trim();
+      const dominantParam = (urlParams.get('dominant') || '').toLowerCase().trim();
+      const stemsParam = urlParams.get('stems');
+
+      let finalBouquet = 'rose';
+
+      if (rawPreset === 'tulip') {
+        finalBouquet = 'tulip';
+      } else if (rawPreset === 'lily') {
+        finalBouquet = 'lily';
+      } else if (rawPreset === 'sunflower' || rawPreset === 'sun') {
+        finalBouquet = 'sunflower';
+      } else if (rawPreset === 'rose') {
+        finalBouquet = 'rose';
+      } else if (dominantParam === 'tulip' || dominantParam === 'lily' || dominantParam === 'sunflower' || dominantParam === 'sun' || dominantParam === 'rose') {
+        finalBouquet = (dominantParam === 'sun' ? 'sunflower' : dominantParam);
+      } else if (stemsParam) {
+        try {
           const stemsData = JSON.parse(decodeURIComponent(stemsParam));
           if (Array.isArray(stemsData) && stemsData.length > 0) {
-            const topStem = stemsData.reduce((prev, curr) => (curr.count > (prev?.count || 0) ? curr : prev), null);
-            if (topStem) {
-              if (topStem.id.includes('tulip')) detectedPreset = 'tulip';
-              else if (topStem.id.includes('lily')) detectedPreset = 'lily';
-              else if (topStem.id.includes('sunflower') || topStem.id.includes('sun')) detectedPreset = 'sunflower';
-              else detectedPreset = 'rose';
-            }
+            let maxCount = -1;
+            let topStemId = '';
+            stemsData.forEach(s => {
+              if (s.count > maxCount) {
+                maxCount = s.count;
+                topStemId = s.id || '';
+              }
+            });
+            if (topStemId.includes('sunflower') || topStemId.includes('sun')) finalBouquet = 'sunflower';
+            else if (topStemId.includes('lily')) finalBouquet = 'lily';
+            else if (topStemId.includes('tulip')) finalBouquet = 'tulip';
+            else finalBouquet = 'rose';
           }
+        } catch (e) {
+          finalBouquet = 'rose';
         }
-      } catch (err) {}
+      }
 
       // Set Bouquet Preset Image
-      if (detectedPreset === 'tulip') bouquetMainImg.src = '/bouquet/tulipbouquet.png';
-      else if (detectedPreset === 'lily') bouquetMainImg.src = '/bouquet/lilybouquet.png';
-      else if (detectedPreset === 'sunflower' || detectedPreset === 'sun') bouquetMainImg.src = '/bouquet/sunbouquet.png';
-      else bouquetMainImg.src = '/bouquet/rosebouquet.png';
+      if (finalBouquet === 'tulip') {
+        bouquetMainImg.src = '/bouquet/tulipbouquet.png';
+        bouquetMainImg.alt = 'Blushing Dutch Tulips Bouquet';
+      } else if (finalBouquet === 'lily') {
+        bouquetMainImg.src = '/bouquet/lilybouquet.png';
+        bouquetMainImg.alt = 'Pure Grace Stargazer Lilies Bouquet';
+      } else if (finalBouquet === 'sunflower') {
+        bouquetMainImg.src = '/bouquet/sunbouquet.png';
+        bouquetMainImg.alt = 'Golden Sunlight Blooms Bouquet';
+      } else {
+        bouquetMainImg.src = '/bouquet/rosebouquet.png';
+        bouquetMainImg.alt = 'Velvet Crimson Roses Bouquet';
+      }
 
       // Populate Text Elements
       pageRecipientTitle.textContent = `For ${recipientTo}`;
