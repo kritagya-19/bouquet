@@ -455,12 +455,55 @@ export default function App() {
     return `${window.location.origin}/garden.html?${params.toString()}`
   }
 
-  // Copy share URL to clipboard
-  const handleCopyShareUrl = () => {
+  // Copy share URL to clipboard with cross-browser fallback
+  const handleCopyShareUrl = async () => {
     const url = getShareUrl()
-    navigator.clipboard.writeText(url)
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(url)
+      } else {
+        throw new Error('Clipboard API unavailable')
+      }
+    } catch {
+      // Fallback for mobile and older browser contexts
+      try {
+        const textArea = document.createElement('textarea')
+        textArea.value = url
+        textArea.style.position = 'fixed'
+        textArea.style.left = '-9999px'
+        textArea.style.top = '0'
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textArea)
+      } catch (err) {
+        console.warn('Fallback copy failed:', err)
+      }
+    }
     setCopiedLink(true)
     setTimeout(() => setCopiedLink(false), 2500)
+  }
+
+  // Native Web Share API (WhatsApp, Messages, Instagram, AirDrop)
+  const handleNativeShare = async () => {
+    const url = getShareUrl()
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: `Handcrafted Botanical Gift for ${recipientName || 'You'} 💐`,
+          text: `A special handcrafted bouquet is waiting for you, ${recipientName || 'my love'}! 💐 Open it here:`,
+          url: url,
+        })
+        return
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          handleCopyShareUrl()
+        }
+        return
+      }
+    }
+    handleCopyShareUrl()
   }
 
   return (
@@ -1842,6 +1885,17 @@ export default function App() {
                             <MessageCircle className="w-4 h-4" />
                             <span>Send via WhatsApp</span>
                           </a>
+                          {/* Native Share Button (for mobile share sheet: WhatsApp, iMessage, Instagram, AirDrop) */}
+                          {typeof navigator !== 'undefined' && !!navigator.share && (
+                            <button
+                              type="button"
+                              onClick={handleNativeShare}
+                              className="w-full py-2.5 px-4 mb-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                            >
+                              <Send className="w-4 h-4" />
+                              <span>Share via Any App 📱</span>
+                            </button>
+                          )}
                         </div>
 
                         <button
