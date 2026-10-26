@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80" width="100%" height="100%">
+  <defs>
+    <filter id="kiss-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#841b2d" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+  <g filter="url(#kiss-glow)">
+    <!-- Upper lip left lobe -->
+    <path d="M 22 36 C 26 26 40 18 52 25 C 57 28 59 31 60 33 C 62 31 64 28 69 25 C 81 18 95 26 99 36 C 92 41 78 39 60 41 C 42 39 28 41 22 36 Z" 
+          fill="#ff2a4b" fill-opacity="0.9" />
+    <path d="M 28 34 C 36 28 48 24 55 28 C 58 30 60 33 60 34 C 60 33 63 30 66 28 C 73 24 85 28 93 34 C 84 37 72 36 60 37 C 48 36 36 37 28 34 Z" 
+          fill="#dc143c" fill-opacity="0.95" />
+    
+    <!-- Lower lip full pout -->
+    <path d="M 26 41 C 40 43 50 45 60 45 C 70 45 80 43 94 41 C 98 52 86 66 60 66 C 34 66 22 52 26 41 Z" 
+          fill="#e11d48" fill-opacity="0.9" />
+    <path d="M 32 44 C 44 46 52 47 60 47 C 68 47 76 46 88 44 C 84 54 74 61 60 61 C 46 61 36 54 32 44 Z" 
+          fill="#ff1e42" fill-opacity="0.85" />
+
+    <!-- Lip texture lines and highlights -->
+    <path d="M 42 46 Q 44 54 43 58 M 52 47 Q 53 56 53 60 M 60 47 Q 60 57 60 61 M 68 47 Q 67 56 67 60 M 78 46 Q 76 54 77 58" 
+          stroke="#9f1239" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.6" />
+    <path d="M 38 29 Q 42 33 45 35 M 54 27 Q 55 32 56 34 M 66 27 Q 65 32 64 34 M 76 28 Q 74 33 72 35" 
+          stroke="#9f1239" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.5" />
+    <!-- Gloss shine -->
+    <ellipse cx="60" cy="53" rx="14" ry="4" fill="#ffffff" opacity="0.35" />
+    <ellipse cx="48" cy="31" rx="6" ry="2" fill="#ffffff" opacity="0.3" transform="rotate(-15 48 31)" />
+    <ellipse cx="72" cy="31" rx="6" ry="2" fill="#ffffff" opacity="0.3" transform="rotate(15 72 31)" />
+  </g>
+</svg>

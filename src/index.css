@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-serif: 'Italiana', 'Cormorant Garamond', Georgia, serif;
+    --font-heading: 'Cormorant Garamond', serif;
+    --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #fff5f7;
+    color: #4a1e27;
+    overflow-x: hidden;
+  }
+}
+
+.font-serif-display {
+  font-family: 'Italiana', 'Cormorant Garamond', Georgia, serif;
+}
+
+.font-cormorant {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.font-sans-clean {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #fbeee8;
+}
+::-webkit-scrollbar-thumb {
+  background: #d8969f;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #841b2d;
+}

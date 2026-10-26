@@ -1,0 +1,3107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>My Love • Botanical Gift</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;600&family=Great+Vibes&family=Patrick+Hand&family=Pinyon+Script&family=Playfair+Display:ital,wght@0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Shantell+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="preload" as="video" href="/transition.mp4" type="video/mp4">
+  <link rel="preload" as="image" href="/letter-assets/photo_polaroid.png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      background: #000000;
+      overflow: hidden;
+      overscroll-behavior: none;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      color: #3a141b;
+    }
+
+    /* ============================================================= */
+    /* 1. SCREEN 1: TYPE GARDEN ("My Love" on Black)                 */
+    /* ============================================================= */
+    #garden-view {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: #000000;
+      cursor: pointer;
+      z-index: 10;
+    }
+    #garden-view.hidden-view {
+      display: none !important;
+    }
+
+    #cv {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* ============================================================= */
+    /* CUTE, ROMANTIC & AESTHETIC TAP PROMPT UI                     */
+    /* ============================================================= */
+    .tap-indicator-container {
+      position: fixed;
+      bottom: calc(28px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 25;
+      pointer-events: auto;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .tap-indicator-container.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, 25px) scale(0.9);
+    }
+
+    /* Romantic Breathing Halos */
+    .tap-halo-ring {
+      position: absolute;
+      inset: -6px;
+      border-radius: 999px;
+      pointer-events: none;
+    }
+    .halo-outer {
+      inset: -14px;
+      border: 1px solid rgba(251, 113, 133, 0.35);
+      animation: romanticHalo 3s cubic-bezier(0.25, 0, 0.3, 1) infinite 0.6s;
+    }
+    .halo-inner {
+      inset: -6px;
+      border: 1.5px solid rgba(253, 164, 175, 0.55);
+      box-shadow: 0 0 16px rgba(244, 63, 94, 0.25);
+      animation: romanticHalo 3s cubic-bezier(0.25, 0, 0.3, 1) infinite;
+    }
+
+    /* Frosted Glass Floating Capsule */
+    .romantic-tap-capsule {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: linear-gradient(135deg, rgba(255, 235, 240, 0.16) 0%, rgba(244, 63, 94, 0.14) 45%, rgba(15, 3, 7, 0.65) 100%);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1.5px solid rgba(255, 205, 215, 0.48);
+      border-radius: 999px;
+      padding: 11px 24px 11px 18px;
+      box-shadow: 
+        0 16px 42px rgba(0, 0, 0, 0.65), 
+        0 0 28px rgba(244, 63, 94, 0.28), 
+        inset 0 1px 1.5px rgba(255, 255, 255, 0.65),
+        inset 0 -1px 1.5px rgba(244, 63, 94, 0.25);
+      animation: romanticCapsuleFloat 3.8s ease-in-out infinite;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .tap-indicator-container:hover .romantic-tap-capsule {
+      background: linear-gradient(135deg, rgba(255, 240, 245, 0.24) 0%, rgba(244, 63, 94, 0.22) 50%, rgba(25, 5, 12, 0.75) 100%);
+      border-color: rgba(255, 215, 225, 0.75);
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.75), 
+        0 0 38px rgba(244, 63, 94, 0.45), 
+        inset 0 1px 2px rgba(255, 255, 255, 0.85);
+    }
+    .tap-indicator-container:active .romantic-tap-capsule {
+      transform: translateY(1px) scale(0.97);
+    }
+
+    /* Left Icon Gem */
+    .tap-gem-icon {
+      position: relative;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(254, 205, 211, 0.35) 0%, rgba(225, 29, 72, 0.45) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(225, 29, 72, 0.35);
+      flex-shrink: 0;
+    }
+    .tap-gem-emoji {
+      font-size: 16px;
+      line-height: 1;
+      display: inline-block;
+      animation: flowerGentleSway 3s ease-in-out infinite alternate;
+    }
+    .tap-gem-sparkle {
+      position: absolute;
+      top: -3px;
+      right: -3px;
+      font-size: 10px;
+      color: #fef08a;
+      text-shadow: 0 0 6px #f59e0b;
+      animation: sparkleTwinkle 2.2s ease-in-out infinite alternate;
+    }
+
+    /* Text Group */
+    .tap-text-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      text-align: left;
+    }
+    .tap-romantic-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-size: clamp(14px, 1.6vw, 16.5px);
+      font-weight: 600;
+      color: #fff5f7;
+      letter-spacing: 0.01em;
+      text-shadow: 0 1px 6px rgba(159, 18, 57, 0.45);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .tap-romantic-title .heart-accent {
+      color: #fb7185;
+      font-style: normal;
+      font-size: 13px;
+      display: inline-block;
+      animation: cuteHeartBeat 1.8s ease-in-out infinite;
+    }
+    .tap-romantic-sub {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: clamp(10.5px, 1.1vw, 11.5px);
+      font-weight: 500;
+      color: #fed7aa;
+      letter-spacing: 0.05em;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Trailing Butterfly Accent */
+    .tap-trailing-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .butterfly-flutter {
+      display: inline-block;
+      animation: butterflyDrift 3.2s ease-in-out infinite;
+    }
+
+    /* Keyframe Animations */
+    @keyframes romanticHalo {
+      0% { transform: scale(0.96); opacity: 0.85; }
+      100% { transform: scale(1.36); opacity: 0; }
+    }
+    @keyframes romanticCapsuleFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+    @keyframes flowerGentleSway {
+      0% { transform: rotate(-8deg) scale(0.96); }
+      100% { transform: rotate(10deg) scale(1.06); }
+    }
+    @keyframes sparkleTwinkle {
+      0%, 100% { transform: scale(0.8); opacity: 0.6; }
+      50% { transform: scale(1.3) rotate(15deg); opacity: 1; }
+    }
+    @keyframes butterflyDrift {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-4px) rotate(8deg); }
+    }
+
+    @media (max-width: 480px) {
+      .romantic-tap-capsule {
+        padding: 9px 18px 9px 14px;
+        gap: 10px;
+      }
+      .tap-gem-icon {
+        width: 28px;
+        height: 28px;
+      }
+      .tap-gem-emoji {
+        font-size: 14px;
+      }
+      .tap-romantic-title {
+        font-size: 13.5px;
+      }
+      .tap-romantic-sub {
+        font-size: 10px;
+      }
+      .tap-trailing-icon {
+        font-size: 14px;
+      }
+    }
+
+    /* ============================================================= */
+    /* 2. VIDEO CINEMATIC TRANSITION & FLASH SCREEN LAYER            */
+    /* ============================================================= */
+    #video-transition-layer {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 120;
+      background: #000000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.35s ease;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #video-transition-layer.active {
+      display: flex;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    #transition-video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      background: #000000;
+    }
+
+
+    #flash-screen-overlay {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 140;
+      visibility: hidden;
+    }
+    #flash-screen-overlay.flash-peak {
+      visibility: visible;
+      opacity: 1;
+      transition: opacity 0.18s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+    #flash-screen-overlay.flash-fade {
+      visibility: visible;
+      opacity: 0;
+      transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* ============================================================= */
+    /* 3. SCREEN 2: BOUQUET PAGE (PARALLAX SCROLL CONTAINER)         */
+    /* ============================================================= */
+    #bouquet-page {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow-y: hidden;
+      overflow-x: hidden;
+      z-index: 20;
+      display: none;
+      opacity: 0;
+      pointer-events: none;
+      background: #fff5f7;
+    }
+    #bouquet-page.active {
+      display: block;
+      opacity: 1;
+      pointer-events: auto;
+    }
+    #bouquet-page.letter-mode {
+      overflow-y: auto;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* ------------------------------------------------------------- */
+    /* 3.1 SECTION 1: BOUQUET HERO VIEW (RECREATED FROM REFERENCE)   */
+    /* Soft peach-blush gradient with centerpiece bouquet & cute tap */
+    /* ------------------------------------------------------------- */
+    .bouquet-hero-section {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 50% 36%, #fff9f9 0%, #fdecee 38%, #fbe0e5 72%, #f5cfd7 100%);
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: calc(14px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom));
+      box-sizing: border-box;
+      transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .bouquet-hero-section.hidden-section {
+      display: none !important;
+    }
+
+    .bouquet-hero-canvas-wrap {
+      width: 100%;
+      max-width: 1200px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      margin: 0 auto;
+    }
+
+    /* Grand Heroic Bouquet Stage */
+    .bouquet-stage {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      animation: zoomInBounce 0.9s cubic-bezier(0.16, 1, 0.3, 1) backwards 0.15s;
+    }
+
+    .bouquet-halo {
+      position: absolute;
+      width: clamp(620px, 82vw, 1200px);
+      height: clamp(620px, 82vw, 1200px);
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(254, 215, 226, 0.82) 0%, rgba(253, 232, 237, 0.42) 50%, rgba(253, 232, 237, 0) 75%);
+      filter: blur(70px);
+      pointer-events: none;
+      animation: haloBreathe 5s ease-in-out infinite;
+    }
+
+    /* The Large Centerpiece Bouquet Image (Prominent, Majestic & Extra Grand) */
+    .bouquet-image {
+      max-height: clamp(680px, 92vh, 1180px);
+      height: 92vh;
+      width: auto;
+      max-width: min(98vw, 1060px);
+      object-fit: contain;
+      filter: drop-shadow(0 38px 70px rgba(180, 75, 90, 0.35)) drop-shadow(0 12px 28px rgba(0, 0, 0, 0.08));
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.4s ease;
+      animation: bouquetFloat 5.2s ease-in-out infinite;
+      will-change: transform;
+    }
+    .bouquet-stage:hover .bouquet-image {
+      transform: scale(1.025) translateY(-6px);
+      filter: drop-shadow(0 42px 72px rgba(180, 75, 90, 0.38)) drop-shadow(0 12px 28px rgba(0, 0, 0, 0.12));
+    }
+    .bouquet-stage:active .bouquet-image {
+      transform: scale(0.98);
+    }
+
+    /* ============================================================= */
+    /* CUTE TAP BANNER OPTION (RECREATED FROM USER IMAGE)             */
+    /* ============================================================= */
+    .cute-tap-container {
+      position: absolute;
+      bottom: clamp(42px, 11.5%, 125px);
+      left: 50%;
+      transform: translate(-50%, 0);
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 25;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      outline: none;
+      padding: 6px 12px;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      animation: cuteBannerFloat 4.8s ease-in-out infinite, fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) backwards 0.35s;
+    }
+    .cute-tap-container:hover {
+      transform: translate(-50%, -4px) scale(1.05);
+    }
+    .cute-tap-container:active {
+      transform: translate(-50%, 1px) scale(0.96);
+    }
+
+    .cute-banner-graphic-row {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .banner-ribbon-graphic {
+      position: relative;
+      width: clamp(290px, 34vw, 380px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(0 12px 26px rgba(150, 45, 60, 0.3));
+    }
+    .ribbon-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Hand-lettered Text inside the Ribbon */
+    .banner-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding-bottom: 2px;
+      user-select: none;
+    }
+    .banner-text {
+      font-family: 'Patrick Hand', 'Shantell Sans', cursive, sans-serif;
+      font-size: clamp(28px, 3.4vw, 37px);
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 0.05em;
+      text-shadow: 0 2px 3px rgba(85, 18, 28, 0.5);
+      line-height: 1;
+      display: inline-block;
+    }
+    .banner-heart {
+      font-size: clamp(21px, 2.5vw, 28px);
+      color: #651f2a;
+      display: inline-block;
+      transform: translateY(-1px);
+      line-height: 1;
+      animation: cuteHeartBeat 2.4s ease-in-out infinite;
+    }
+
+    /* Floating Hand-Drawn Doodle Accents (Sparkles & Hearts) */
+    .banner-decor {
+      position: absolute;
+      pointer-events: none;
+      user-select: none;
+    }
+    .decor-left {
+      left: -28px;
+      top: -4px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: center;
+    }
+    .decor-right {
+      right: -28px;
+      top: -2px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      align-items: center;
+    }
+    .doodle-svg {
+      display: block;
+      filter: drop-shadow(0 1.5px 3px rgba(100, 25, 35, 0.2));
+      animation: doodleTwinkle 3.2s ease-in-out infinite alternate;
+    }
+
+    /* Subtitle: "to discover a romantic surprise ✨" */
+    .banner-subtext {
+      margin: 10px 0 0;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-size: clamp(14.5px, 1.7vw, 18px);
+      font-weight: 500;
+      color: #843f4a;
+      letter-spacing: 0.02em;
+      text-align: center;
+      user-select: none;
+      opacity: 0.96;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .banner-subtext .subtext-sparkle {
+      font-style: normal;
+      font-size: 15px;
+      display: inline-block;
+      animation: sparkleSpin 4s ease-in-out infinite;
+    }
+
+    /* Floating & Twinkle Keyframes */
+    @keyframes cuteBannerFloat {
+      0%, 100% { transform: translate(-50%, 0); }
+      50% { transform: translate(-50%, -6px); }
+    }
+    @keyframes cuteHeartBeat {
+      0%, 100% { transform: translateY(-1px) scale(1); }
+      50% { transform: translateY(-1px) scale(1.18); }
+    }
+    @keyframes doodleTwinkle {
+      0%, 100% { opacity: 0.85; transform: scale(1) rotate(0deg); }
+      50% { opacity: 1; transform: scale(1.14) rotate(4deg); }
+    }
+    @keyframes sparkleSpin {
+      0%, 100% { transform: scale(1); opacity: 0.9; }
+      50% { transform: scale(1.22) rotate(10deg); opacity: 1; }
+    }
+
+    /* Strictly hide "TAP HERE" banner on love letter page */
+    #bouquet-page.letter-mode .cute-tap-container,
+    .bouquet-hero-section.hidden-section .cute-tap-container {
+      display: none !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+
+    /* ============================================================= */
+    /* 3.2 TUCKED RIBBON NOTE & 3D UNFOLD TRANSITION                 */
+    /* ============================================================= */
+
+    /* Cute Folded Note Tucked Behind Bouquet Ribbon Knot */
+    .ribbon-peek-note {
+      position: absolute;
+      bottom: calc(clamp(42px, 11.5%, 125px) + 105px);
+      left: 50%;
+      transform: translateX(-50%) rotate(-3deg);
+      z-index: 20;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.35s ease;
+      animation: peekNotePulse 3.2s ease-in-out infinite;
+    }
+    .ribbon-peek-note:hover {
+      transform: translateX(-50%) translateY(-10px) rotate(-1deg) scale(1.08);
+      filter: drop-shadow(0 14px 28px rgba(180, 25, 55, 0.45));
+    }
+    .ribbon-peek-note:active {
+      transform: translateX(-50%) scale(0.96);
+    }
+    .peek-note-sheet {
+      position: relative;
+      background: linear-gradient(145deg, #fffdfa 0%, #f9f1e8 100%);
+      border: 1.5px solid rgba(225, 29, 72, 0.3);
+      border-radius: 8px 8px 3px 3px;
+      padding: 8px 16px 14px 16px;
+      box-shadow: 0 10px 24px rgba(136, 19, 55, 0.28), 0 2px 6px rgba(0, 0, 0, 0.12);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .peek-note-sheet::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-top: 6px solid #f9f1e8;
+    }
+    .peek-note-seal {
+      font-size: 16px;
+      animation: sealTinyHeart 1.6s ease-in-out infinite alternate;
+    }
+    .peek-note-text {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: #9f1239;
+      text-transform: uppercase;
+    }
+
+    /* Modal Overlay for Tucked Note Full Presentation */
+    .tucked-note-overlay {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .tucked-note-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Romantic Candlelit Vignette Backdrop */
+    .tucked-backdrop {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 45%, rgba(65, 12, 24, 0.78) 0%, rgba(18, 3, 7, 0.94) 100%);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      cursor: pointer;
+    }
+
+    /* 3D Perspective Stage */
+    .tucked-card-stage {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 560px;
+      padding: 16px;
+      perspective: 1200px;
+      display: flex;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+
+    /* The Unfolded Romantic Love Letter Card */
+    .tucked-letter-card {
+      position: relative;
+      width: 100%;
+      max-height: 84vh;
+      background: linear-gradient(150deg, #fdfbf7 0%, #faf3eb 60%, #f6ece0 100%);
+      border-radius: 20px;
+      box-shadow: 
+        0 0 0 1px rgba(217, 119, 6, 0.28),
+        0 25px 65px -10px rgba(114, 18, 36, 0.42),
+        0 10px 25px rgba(0, 0, 0, 0.25),
+        inset 0 0 45px rgba(254, 243, 199, 0.35);
+      padding: clamp(20px, 4vw, 32px);
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      transform-style: preserve-3d;
+      transform-origin: center bottom;
+      animation: noteSlideUnfold 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .tucked-note-overlay.closing .tucked-letter-card {
+      animation: noteFoldBack 0.42s cubic-bezier(0.55, 0, 0.1, 1) forwards;
+    }
+
+    /* Scalloped Lace Top Border */
+    .card-scallop-trim {
+      position: absolute;
+      top: 0;
+      left: 16px;
+      right: 16px;
+      height: 8px;
+      background-image: radial-gradient(circle at 6px 0, rgba(225, 29, 72, 0.2) 3px, transparent 3.5px);
+      background-size: 12px 8px;
+    }
+
+    /* Card Header Bar */
+    .tucked-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed rgba(225, 29, 72, 0.2);
+    }
+    .tucked-date-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: #9f1239;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .tucked-date-tag .sparkle {
+      color: #e11d48;
+    }
+    .btn-tucked-close {
+      background: rgba(225, 29, 72, 0.08);
+      border: 1px solid rgba(225, 29, 72, 0.25);
+      color: #9f1239;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      transition: all 0.25s ease;
+    }
+    .btn-tucked-close:hover {
+      background: #e11d48;
+      color: #ffffff;
+      transform: scale(1.1) rotate(90deg);
+    }
+
+    /* Calligraphy Salutation */
+    .tucked-card-salutation {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(20px, 3.8vw, 26px);
+      font-weight: 700;
+      font-style: italic;
+      color: #841b2d;
+      margin: 0 0 14px 0;
+      letter-spacing: -0.01em;
+    }
+
+    /* Content Row: Polaroid + Scrollable Letter */
+    .tucked-content-row {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      flex: 1;
+      min-height: 0;
+      margin-bottom: 16px;
+    }
+
+    /* Pinned Polaroid Memory */
+    .tucked-polaroid-wrap {
+      flex-shrink: 0;
+      width: clamp(86px, 18vw, 116px);
+      background: #ffffff;
+      padding: 6px 6px 16px 6px;
+      border-radius: 4px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(136, 19, 55, 0.12);
+      transform: rotate(-3.5deg);
+      position: relative;
+      transition: transform 0.3s ease;
+    }
+    .tucked-polaroid-wrap:hover {
+      transform: rotate(0deg) scale(1.05);
+      z-index: 5;
+    }
+    .tucked-polaroid-washi {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #f43f5e;
+      color: #ffffff;
+      width: 24px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      border-radius: 2px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+    }
+    .tucked-polaroid-frame {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      border-radius: 2px;
+      background: #faf5f0;
+    }
+    .tucked-polaroid-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .tucked-polaroid-chin {
+      font-family: 'Caveat', cursive, sans-serif;
+      font-size: 13px;
+      color: #841b2d;
+      text-align: center;
+      margin-top: 6px;
+      font-weight: 700;
+    }
+
+    /* Ruled Stationery Note Body Scroll Area */
+    .tucked-body-wrap {
+      flex: 1;
+      overflow-y: auto;
+      max-height: clamp(200px, 42vh, 340px);
+      padding: 4px 10px 4px 4px;
+      background-image: repeating-linear-gradient(transparent, transparent 27px, rgba(225, 29, 72, 0.08) 28px);
+      background-attachment: local;
+      line-height: 28px;
+    }
+    .tucked-body-content {
+      font-family: 'Caveat', cursive, Georgia, serif;
+      font-size: clamp(17px, 2.5vw, 20px);
+      line-height: 28px;
+      color: #4a0d18;
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-weight: 600;
+    }
+
+    /* Card Footer: Signature & Collapse Button */
+    .tucked-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed rgba(225, 29, 72, 0.2);
+    }
+    .tucked-sig-block {
+      display: flex;
+      flex-direction: column;
+    }
+    .tucked-sig-label {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-size: 12px;
+      color: #9f1239;
+    }
+    .tucked-sig-author {
+      font-family: 'Caveat', cursive, sans-serif;
+      font-size: clamp(18px, 3vw, 22px);
+      font-weight: 700;
+      color: #841b2d;
+    }
+
+    /* Tactile Fold & Return Button */
+    .btn-tucked-collapse {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 999px;
+      padding: 10px 20px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(190, 18, 60, 0.35);
+      transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .btn-tucked-collapse:hover {
+      background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 10px 24px rgba(190, 18, 60, 0.45);
+    }
+    .btn-tucked-collapse:active {
+      transform: translateY(1px) scale(0.97);
+    }
+    .btn-tucked-collapse .btn-icon {
+      font-size: 14px;
+    }
+
+    /* Keyframe Animations */
+    @keyframes noteSlideUnfold {
+      0% {
+        opacity: 0;
+        transform: translateY(32vh) scale(0.32) rotateX(42deg) rotateZ(-3deg);
+        filter: blur(6px);
+      }
+      65% {
+        opacity: 1;
+        transform: translateY(-12px) scale(1.02) rotateX(-3deg) rotateZ(0.5deg);
+        filter: blur(0px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1) rotateX(0deg) rotateZ(0deg);
+        filter: blur(0px);
+      }
+    }
+
+    @keyframes noteFoldBack {
+      0% {
+        opacity: 1;
+        transform: translateY(0) scale(1) rotateX(0deg);
+        filter: blur(0px);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(30vh) scale(0.32) rotateX(38deg) rotateZ(-2deg);
+        filter: blur(5px);
+      }
+    }
+
+    @keyframes peekNotePulse {
+      0%, 100% {
+        transform: translateX(-50%) translateY(0) rotate(-3deg);
+      }
+      50% {
+        transform: translateX(-50%) translateY(-6px) rotate(-1.5deg);
+      }
+    }
+
+    @keyframes sealTinyHeart {
+      from { transform: scale(1); }
+      to { transform: scale(1.22); }
+    }
+
+    @media (max-width: 480px) {
+      .tucked-card-stage {
+        padding: 10px;
+      }
+      .tucked-letter-card {
+        padding: 18px 14px;
+        border-radius: 16px;
+      }
+      .tucked-content-row {
+        gap: 10px;
+      }
+      .tucked-polaroid-wrap {
+        width: 74px;
+        padding: 4px 4px 12px 4px;
+      }
+      .tucked-polaroid-chin {
+        font-size: 11px;
+      }
+      .tucked-body-wrap {
+        max-height: clamp(180px, 40vh, 260px);
+        line-height: 25px;
+      }
+      .tucked-body-content {
+        font-size: 16px;
+        line-height: 25px;
+      }
+      .btn-tucked-collapse {
+        padding: 8px 14px;
+        font-size: 10px;
+      }
+      .tucked-sig-author {
+        font-size: 16px;
+      }
+    }
+
+    /* ------------------------------------------------------------- */
+    /* 3.3 SECTION 2: ROMANTIC LOVE LETTER SECTION                    */
+    /* Unsealed and presented in warm, luxurious reading view        */
+    /* ------------------------------------------------------------- */
+    .love-letter-section {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      min-height: 100vh;
+      display: none;
+      opacity: 0;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 25%, #fdf8f5 0%, #f8eae6 45%, #eddcd8 100%);
+      overflow-x: hidden;
+      padding: clamp(60px, 8vh, 100px) 24px clamp(50px, 7vh, 90px);
+      box-sizing: border-box;
+      transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .love-letter-section.active {
+      display: flex;
+      opacity: 1;
+      animation: letterUnfurl 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .love-letter-section.collapsing {
+      animation: letterFoldCollapse 0.42s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+    }
+
+    /* Soft Atmospheric Luminous Light Glow (Warm antique blush radiance) */
+    .love-letter-ambient-glow {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 35%, rgba(255, 246, 242, 0.95) 0%, rgba(253, 235, 238, 0.65) 55%, rgba(245, 218, 224, 0.4) 100%);
+      pointer-events: none;
+    }
+
+    /* Floating Collapse Button on Letter Page */
+    .btn-return-bouquet {
+      position: fixed;
+      top: calc(22px + env(safe-area-inset-top));
+      left: 24px;
+      z-index: 60;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, rgba(255, 252, 248, 0.95) 0%, rgba(252, 244, 240, 0.92) 100%);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      color: #841b2d;
+      padding: 11px 24px;
+      border-radius: 999px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border: 1.5px solid rgba(212, 160, 90, 0.5);
+      box-shadow: 0 8px 24px rgba(132, 27, 45, 0.15);
+      cursor: pointer;
+      transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+    }
+    .btn-return-bouquet:hover {
+      background: linear-gradient(135deg, #841b2d 0%, #6d1222 100%);
+      color: #fff4f6;
+      transform: translateY(-2px);
+      border-color: rgba(251, 191, 36, 0.6);
+      box-shadow: 0 12px 28px rgba(132, 27, 45, 0.3);
+    }
+    .btn-return-bouquet:active {
+      transform: translateY(0);
+    }
+
+    /* Bottom Collapse Card Action */
+    .letter-collapse-row {
+      margin-top: clamp(28px, 4vh, 48px);
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+    .btn-bottom-collapse {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #fdf8f4 0%, #faece8 50%, #f6ddd8 100%);
+      color: #841b2d;
+      padding: 13px 32px;
+      border-radius: 999px;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border: 1.5px solid rgba(212, 160, 90, 0.55);
+      box-shadow: 0 10px 28px rgba(132, 27, 45, 0.16), 0 2px 6px rgba(0, 0, 0, 0.04);
+      cursor: pointer;
+      transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+    }
+    .btn-bottom-collapse:hover {
+      background: linear-gradient(135deg, #841b2d 0%, #6e1222 100%);
+      color: #fff4f6;
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 16px 36px rgba(132, 27, 45, 0.32);
+      border-color: rgba(251, 191, 36, 0.65);
+    }
+    .btn-bottom-collapse:active {
+      transform: translateY(-1px) scale(0.98);
+    }
+    .collapse-icon {
+      font-size: 16px;
+    }
+    .collapse-sparkle {
+      font-size: 14px;
+      animation: sparkleGlow 1.8s ease-in-out infinite alternate;
+    }
+
+    /* Stage Wrapper: Fully Centered with Balanced Spacing (No odd empty spaces) */
+    .letter-stage-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+    }
+
+    /* 1. Romantic Title Group */
+    .scrapbook-title-header {
+      margin-bottom: clamp(20px, 3vh, 32px);
+      text-align: center;
+      user-select: none;
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 6px;
+    }
+    .title-hash {
+      font-family: 'Great Vibes', cursive;
+      font-size: clamp(34px, 4vw, 56px);
+      color: #841b2d;
+      display: inline-block;
+      line-height: 1;
+    }
+    .title-love {
+      font-family: 'Great Vibes', cursive;
+      font-size: clamp(52px, 6.5vw, 86px);
+      color: #841b2d;
+      display: inline-block;
+      letter-spacing: -0.01em;
+      line-height: 1;
+    }
+    .title-letter {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-weight: 600;
+      font-size: clamp(20px, 2.4vw, 32px);
+      color: #9d2036;
+      letter-spacing: 0.04em;
+      display: inline-block;
+      margin-left: 6px;
+      line-height: 1;
+    }
+
+    /* 2. Creative Scrapbook Collage Desk Stage */
+    .scrapbook-collage-desk {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+      margin: 10px auto 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 30px 10px 40px;
+      box-sizing: border-box;
+    }
+
+    /* Central Ruled Stationery Notepad Sheet (Rich Warm Parchment Paper) */
+    .scrapbook-notepad-sheet {
+      position: relative;
+      width: 100%;
+      max-width: 630px;
+      min-height: 480px;
+      background-color: #fdfaf4;
+      background-image: 
+        radial-gradient(circle at 100% 0%, rgba(255, 235, 238, 0.45) 0%, transparent 60%),
+        repeating-linear-gradient(
+          to bottom,
+          transparent 0px,
+          transparent 33px,
+          rgba(215, 135, 155, 0.18) 33px,
+          rgba(215, 135, 155, 0.18) 34px
+        );
+      border-radius: 8px;
+      box-shadow: 
+        0 30px 80px rgba(105, 18, 32, 0.14), 
+        0 6px 20px rgba(0, 0, 0, 0.04), 
+        inset 0 0 45px rgba(245, 225, 215, 0.4);
+      border: 1px solid rgba(225, 185, 190, 0.7);
+      outline: 1px solid rgba(212, 175, 55, 0.28);
+      outline-offset: -8px;
+      padding: clamp(34px, 4.5vw, 54px) clamp(28px, 4.5vw, 50px) clamp(65px, 8vw, 95px);
+      box-sizing: border-box;
+      transform: rotate(-0.5deg);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      z-index: 5;
+    }
+    .scrapbook-notepad-sheet:hover {
+      transform: rotate(0deg);
+      box-shadow: 0 32px 85px rgba(105, 18, 32, 0.18), inset 0 0 45px rgba(245, 225, 215, 0.45);
+    }
+
+    /* Notepad Header: Positioned on open top-right area beside the polaroid */
+    .notepad-header {
+      margin-left: clamp(170px, 24vw, 250px);
+      min-height: clamp(120px, 15vw, 150px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .notepad-date-tag {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+    .date-line {
+      width: 42px;
+      height: 1px;
+      background: rgba(132, 27, 45, 0.3);
+    }
+    .date-text {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(132, 27, 45, 0.65);
+      font-weight: 500;
+    }
+    .notepad-script-heading {
+      font-family: 'Pinyon Script', cursive;
+      font-size: clamp(30px, 3.8vw, 44px);
+      color: #841b2d;
+      line-height: 1.1;
+      margin: 4px 0 0;
+      font-weight: 400;
+    }
+
+    /* Notepad Letter Content (Starts comfortably below the polaroid card) */
+    .notepad-letter-body {
+      position: relative;
+      z-index: 6;
+      clear: both;
+    }
+    .notepad-salutation {
+      margin-left: clamp(170px, 24vw, 250px);
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(21px, 2.3vw, 26px);
+      font-weight: 700;
+      color: #841b2d;
+      margin-top: 10px;
+      margin-bottom: 14px;
+      line-height: 34px;
+      text-align: left;
+    }
+    .notepad-message {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-size: clamp(15.5px, 1.25vw, 17.5px);
+      line-height: 34px;
+      color: #5c1421;
+      margin: 0 0 20px;
+      padding-right: clamp(28px, 5vw, 68px);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* Notepad Signature: Hand-drawn doodle heart & author (stays on left, clear of mini polaroid) */
+    .notepad-signature-block {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 16px;
+      padding-top: 6px;
+      min-height: clamp(80px, 10vw, 105px);
+      max-width: 50%;
+    }
+    .doodle-heart-icon {
+      width: 44px;
+      height: 52px;
+      flex-shrink: 0;
+      filter: drop-shadow(0 2px 4px rgba(132, 27, 45, 0.15));
+    }
+    .notepad-signature-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .sig-label {
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      color: rgba(132, 27, 45, 0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .sig-author {
+      font-family: 'Pinyon Script', cursive;
+      font-size: clamp(28px, 3.2vw, 40px);
+      color: #841b2d;
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    /* 3. Top-Left Main Polaroid Card (Warm Photographic Ivory Cardstock) */
+    .scrapbook-polaroid-main {
+      position: absolute;
+      left: -52px;
+      top: -24px;
+      width: clamp(190px, 23vw, 250px);
+      background: linear-gradient(165deg, #fdfbf7 0%, #f7f1e7 100%);
+      padding: 10px 10px 32px 10px;
+      border-radius: 4px;
+      box-shadow: 0 20px 45px rgba(120, 20, 35, 0.16), 0 3px 12px rgba(0, 0, 0, 0.07);
+      border: 1px solid rgba(220, 195, 185, 0.55);
+      transform: rotate(-9deg);
+      z-index: 12;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+      box-sizing: border-box;
+    }
+    .scrapbook-polaroid-main:hover {
+      transform: rotate(-6deg) scale(1.03);
+      box-shadow: 0 26px 55px rgba(120, 20, 35, 0.22);
+      z-index: 15;
+    }
+    .polaroid-heart-tape {
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%) rotate(4deg);
+      width: 30px;
+      height: 30px;
+      z-index: 14;
+      filter: drop-shadow(0 3px 6px rgba(132, 27, 45, 0.25));
+    }
+    .heart-tape-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .polaroid-photo-frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1.08;
+      background: #180306;
+      border-radius: 2px;
+      overflow: hidden;
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.25);
+    }
+    .polaroid-user-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .polaroid-doodle {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      filter: drop-shadow(0 2px 4px rgba(220, 30, 40, 0.6));
+    }
+    .polaroid-chin-text {
+      margin-top: 8px;
+      text-align: center;
+      font-family: 'Pinyon Script', cursive;
+      font-size: clamp(24px, 2.5vw, 32px);
+      color: #841b2d;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    /* 4. Bottom-Right Mini Accent Polaroid Card (Warm Photographic Ivory Cardstock) */
+    .scrapbook-polaroid-mini {
+      position: absolute;
+      right: 14px;
+      bottom: -18px;
+      width: clamp(140px, 16.5vw, 185px);
+      background: linear-gradient(165deg, #fdfbf7 0%, #f7f1e7 100%);
+      padding: 8px 8px 26px 8px;
+      border-radius: 4px;
+      box-shadow: 0 16px 38px rgba(120, 20, 35, 0.16), 0 3px 10px rgba(0, 0, 0, 0.06);
+      border: 1px solid rgba(220, 195, 185, 0.55);
+      transform: rotate(6.5deg);
+      z-index: 12;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+      box-sizing: border-box;
+    }
+    .scrapbook-polaroid-mini:hover {
+      transform: rotate(4deg) scale(1.03);
+      box-shadow: 0 22px 46px rgba(120, 20, 35, 0.22);
+      z-index: 15;
+    }
+    .polaroid-mini-bow {
+      position: absolute;
+      top: -14px;
+      right: 18px;
+      font-size: 22px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+      pointer-events: none;
+      user-select: none;
+      transform: rotate(8deg);
+    }
+    .polaroid-mini-frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1.05;
+      background: #180306;
+      border-radius: 2px;
+      overflow: hidden;
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.25);
+    }
+    .polaroid-mini-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .polaroid-mini-chin {
+      margin-top: 6px;
+      text-align: center;
+      font-family: 'Pinyon Script', cursive;
+      font-size: clamp(20px, 2.2vw, 28px);
+      color: #841b2d;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    /* Responsive adjustments for tablet & mobile */
+    @media (max-width: 820px) {
+      .scrapbook-collage-desk {
+        flex-direction: column;
+        padding: 10px 0 20px;
+        gap: 20px;
+      }
+      .scrapbook-polaroid-main,
+      .scrapbook-polaroid-mini {
+        position: static;
+        width: clamp(230px, 60vw, 300px);
+        transform: rotate(-2deg);
+        margin: 0 auto;
+      }
+      .scrapbook-polaroid-mini {
+        transform: rotate(2deg);
+      }
+      .scrapbook-notepad-sheet {
+        width: 100%;
+        transform: rotate(0deg);
+        padding: 32px 24px;
+      }
+      .notepad-header {
+        margin-left: 0;
+        min-height: auto;
+        margin-bottom: 16px;
+      }
+      .notepad-salutation {
+        margin-left: 0;
+        text-align: center;
+      }
+      .notepad-message {
+        padding-right: 0;
+      }
+      .notepad-signature-block {
+        max-width: 100%;
+        min-height: auto;
+      }
+    }
+
+    @keyframes sparkleGlow {
+      0% { opacity: 0.5; transform: scale(0.9); }
+      100% { opacity: 1; transform: scale(1.15); }
+    }
+
+    /* Micro-Animations */
+    @keyframes mouseScroll {
+      0% { transform: translate(-50%, 0); opacity: 0; }
+      40% { opacity: 1; }
+      80% { transform: translate(-50%, 8px); opacity: 0; }
+      100% { opacity: 0; }
+    }
+    @keyframes arrowBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(4px); }
+    }
+    @keyframes mouseWheelGlide {
+      0% { transform: translate(-50%, 0); opacity: 0; }
+      25% { opacity: 1; }
+      70% { transform: translate(-50%, 8px); opacity: 0.9; }
+      100% { transform: translate(-50%, 11px); opacity: 0; }
+    }
+    @keyframes chevronBounce {
+      0%, 100% { transform: translateY(0); opacity: 0.6; }
+      50% { transform: translateY(3px); opacity: 1; }
+    }
+    @keyframes fadeInLeftUp {
+      from { opacity: 0; transform: translate(-20px, 20px) scale(0.9); }
+      to { opacity: 1; transform: translate(0, 0) scale(1); }
+    }
+    @keyframes indGlow {
+      0%, 100% { transform: scale(0.96); opacity: 0.35; }
+      50% { transform: scale(1.18); opacity: 0.75; }
+    }
+    @keyframes floatSparkle {
+      0%, 100% { transform: translateY(0) scale(0.85); opacity: 0.4; }
+      50% { transform: translateY(-10px) scale(1.15); opacity: 0.95; }
+    }
+    @keyframes bouquetFloat {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      33% { transform: translateY(-8px) rotate(0.8deg); }
+      66% { transform: translateY(-4px) rotate(-0.6deg); }
+    }
+    @keyframes butterflyWingFlutter {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      30% { transform: scale(0.96, 1.04) rotate(2deg); }
+      60% { transform: scale(1.03, 0.97) rotate(-1deg); }
+    }
+    @keyframes flowerGentleSway {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(3deg); }
+    }
+    @keyframes haloBreathe {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.2); opacity: 1; }
+    }
+    @keyframes bouquetSway {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-8px) rotate(1deg); }
+    }
+    @keyframes btnPulse {
+      0%, 100% { box-shadow: 0 8px 25px rgba(132, 27, 45, 0.35), 0 0 0 0 rgba(244, 63, 94, 0.5); }
+      50% { box-shadow: 0 12px 30px rgba(132, 27, 45, 0.45), 0 0 0 10px rgba(244, 63, 94, 0); }
+    }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes zoomInBounce {
+      from { opacity: 0; transform: scale(0.7) translateY(30px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+
+
+    /* Confetti Petals Canvas */
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 150;
+    }
+  </style>
+</head>
+<body>
+  <!-- ============================================================= -->
+  <!-- 1. SCREEN 1: TYPE GARDEN ("My Love")                          -->
+  <!-- ============================================================= -->
+  <div id="garden-view">
+    <canvas id="cv"></canvas>
+
+    <!-- Cute & Romantic Aesthetic Tap Prompt -->
+    <div id="tap-indicator" class="tap-indicator-container" title="Touch gently anywhere to unveil your surprise">
+      <div class="tap-halo-ring halo-outer"></div>
+      <div class="tap-halo-ring halo-inner"></div>
+      <div class="romantic-tap-capsule">
+        <div class="tap-gem-icon">
+          <span class="tap-gem-emoji">🌸</span>
+          <span class="tap-gem-sparkle">✦</span>
+        </div>
+        <div class="tap-text-group">
+          <span class="tap-romantic-title">tap gently anywhere to bloom <span class="heart-accent">♥</span></span>
+          <span class="tap-romantic-sub">a love surprise awaits you ✨</span>
+        </div>
+        <div class="tap-trailing-icon">
+          <span class="butterfly-flutter">🦋</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <!-- 2. VIDEO CINEMATIC TRANSITION & FLASH SCREEN LAYER            -->
+  <!-- ============================================================= -->
+  <div id="video-transition-layer" class="video-transition-layer">
+    <video
+      id="transition-video"
+      class="transition-video"
+      src="/transition.mp4"
+      preload="auto"
+      playsinline
+      webkit-playsinline
+    ></video>
+  </div>
+  <div id="flash-screen-overlay" class="flash-screen-overlay"></div>
+  <div id="flower-transition-layer" style="display:none;"></div>
+
+  <!-- ============================================================= -->
+  <!-- 3. SCREEN 2: BOUQUET & LOVE LETTER PARALLAX STAGE             -->
+  <!-- ============================================================= -->
+  <div id="bouquet-page">
+    
+    <!-- ----------------------------------------------------------- -->
+    <!-- 3.1 SECTION 1: BOUQUET HERO (STICKY PINNED AT TOP)          -->
+    <!-- Current section does not move when user scrolls down        -->
+    <!-- ----------------------------------------------------------- -->
+    <section id="bouquet-hero-section" class="bouquet-hero-section">
+      <!-- Hidden accessibility & personalization container so JS DOM bindings never fail -->
+      <div style="position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none;" aria-hidden="true">
+        <span id="page-recipient-title">For My Love</span>
+        <span id="page-sender-name">Yours Forever</span>
+      </div>
+
+      <div class="bouquet-hero-canvas-wrap">
+        <!-- Grand Centerpiece Bouquet Stage -->
+        <div id="bouquet-stage" class="bouquet-stage" title="Tap to discover a romantic surprise!">
+          <div class="bouquet-halo"></div>
+          <img id="bouquet-main-img" src="/bouquet/rosebouquet.png" alt="Handcrafted Bouquet" class="bouquet-image" />
+
+          <!-- Cute Option of Tap: Hand-Drawn Ribbon Banner & Surprise Subtitle (Placed above wrapper bottom) -->
+          <button id="unseal-letter-indicator" class="cute-tap-container" title="Tap to discover a romantic surprise">
+          <div class="cute-banner-graphic-row">
+            <!-- Left Sparkle & Heart Doodles -->
+            <div class="banner-decor decor-left">
+              <svg class="doodle-svg doodle-sparkle-top" viewBox="0 0 24 24" width="18" height="18" fill="none">
+                <path d="M12 2 Q12 12 2 12 Q12 12 12 22 Q12 12 22 12 Q12 12 12 2 Z" fill="#722834" />
+              </svg>
+              <svg class="doodle-svg doodle-heart-left" viewBox="0 0 24 24" width="16" height="16" fill="none">
+                <path d="M12 20 C12 20 3 14 3 8 C3 4.5 5.5 2 9 2 C10.8 2 12 3 12 3 C12 3 13.2 2 15 2 C18.5 2 21 4.5 21 8 C21 14 12 20 12 20 Z" fill="#fecdd3" stroke="#722834" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <svg class="doodle-svg doodle-sparkle-mini" viewBox="0 0 16 16" width="10" height="10" fill="none">
+                <path d="M8 2 Q8 8 2 8 Q8 8 8 14 Q8 8 14 8 Q8 8 14 8 Q8 8 8 2 Z" fill="#722834" />
+              </svg>
+            </div>
+
+            <!-- Central Hand-Drawn Ribbon Graphic -->
+            <div class="banner-ribbon-graphic">
+              <svg class="ribbon-svg" viewBox="0 0 280 66" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="ribbon-surface-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#df8992" />
+                    <stop offset="50%" stop-color="#cf7782" />
+                    <stop offset="100%" stop-color="#bd6773" />
+                  </linearGradient>
+                  <linearGradient id="ribbon-tail-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#bd6974" />
+                    <stop offset="100%" stop-color="#9f515c" />
+                  </linearGradient>
+                  <filter id="ribbon-shadow" x="-10%" y="-15%" width="125%" height="145%">
+                    <feDropShadow dx="0" dy="7" stdDeviation="6" flood-color="#802835" flood-opacity="0.25" />
+                  </filter>
+                </defs>
+
+                <!-- Left Ribbon Tail (Behind Main Ribbon) -->
+                <path d="M 46 20 
+                         C 32 24, 18 31, 9 37 
+                         L 25 46 
+                         L 7 57 
+                         C 20 54, 32 49, 48 47 Z" 
+                      fill="url(#ribbon-tail-grad)" 
+                      stroke="#5f1d27" 
+                      stroke-width="2.2" 
+                      stroke-linecap="round" 
+                      stroke-linejoin="round" />
+
+                <!-- Left Fold Shadow Under Banner -->
+                <path d="M 46 43 L 37 51 L 48 47 Z" fill="#48141c" />
+
+                <!-- Right Ribbon Tail (Behind Main Ribbon) -->
+                <path d="M 234 20 
+                         C 248 24, 262 31, 271 37 
+                         L 255 46 
+                         L 273 57 
+                         C 260 54, 248 49, 232 47 Z" 
+                      fill="url(#ribbon-tail-grad)" 
+                      stroke="#5f1d27" 
+                      stroke-width="2.2" 
+                      stroke-linecap="round" 
+                      stroke-linejoin="round" />
+
+                <!-- Right Fold Shadow Under Banner -->
+                <path d="M 234 43 L 243 51 L 232 47 Z" fill="#48141c" />
+
+                <!-- Central Main Ribbon Body -->
+                <g filter="url(#ribbon-shadow)">
+                  <path d="M 44 13 
+                           C 100 8, 180 8, 236 13 
+                           C 242 13, 245 17, 244 23 
+                           C 242 33, 242 43, 244 52 
+                           C 245 58, 242 62, 236 62 
+                           C 180 67, 100 67, 44 62 
+                           C 38 62, 35 58, 36 52 
+                           C 38 43, 38 33, 36 23 
+                           C 35 17, 38 13, 44 13 Z" 
+                        fill="url(#ribbon-surface-grad)" 
+                        stroke="#5f1d27" 
+                        stroke-width="2.4" 
+                        stroke-linecap="round" 
+                        stroke-linejoin="round" />
+
+                  <!-- Top Edge Hand-Drawn Highlight -->
+                  <path d="M 47 16 C 100 12, 180 12, 233 16" 
+                        stroke="rgba(255, 255, 255, 0.55)" 
+                        stroke-width="1.8" 
+                        stroke-linecap="round" />
+                </g>
+              </svg>
+
+              <!-- Central Lettering & Heart -->
+              <div class="banner-content">
+                <span class="banner-text">TAP HERE</span>
+                <span class="banner-heart">♥</span>
+              </div>
+            </div>
+
+            <!-- Right Sparkle & Heart Doodles -->
+            <div class="banner-decor decor-right">
+              <svg class="doodle-svg doodle-heart-right" viewBox="0 0 24 24" width="16" height="16" fill="none">
+                <path d="M12 20 C12 20 3 14 3 8 C3 4.5 5.5 2 9 2 C10.8 2 12 3 12 3 C12 3 13.2 2 15 2 C18.5 2 21 4.5 21 8 C21 14 12 20 12 20 Z" fill="#fecdd3" stroke="#722834" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <svg class="doodle-svg doodle-sparkle-bottom" viewBox="0 0 20 20" width="14" height="14" fill="none">
+                <path d="M10 2 Q10 10 2 10 Q10 10 10 18 Q10 10 18 10 Q10 10 10 2 Z" fill="#722834" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Subtitle from attached image -->
+          <p class="banner-subtext">to discover a romantic surprise <span class="subtext-sparkle">✨</span></p>
+        </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================= -->
+    <!-- TUCKED RIBBON NOTE OVERLAY                                    -->
+    <!-- ============================================================= -->
+    <div id="tucked-note-overlay" class="tucked-note-overlay">
+      <div class="tucked-backdrop" id="tucked-backdrop"></div>
+
+      <div class="tucked-card-stage">
+        <div class="tucked-letter-card" id="tucked-letter-card">
+          <!-- Scalloped Lace Top Trim -->
+          <div class="card-scallop-trim"></div>
+
+          <!-- Card Header Bar -->
+          <div class="tucked-card-header">
+            <div class="tucked-date-tag">
+              <span class="sparkle">✦</span>
+              <span>today &amp; forever</span>
+              <span class="sparkle">✦</span>
+            </div>
+            <button id="btn-tucked-close" class="btn-tucked-close" title="Close & Return to Bouquet" aria-label="Close">
+              ✕
+            </button>
+          </div>
+
+          <!-- Salutation -->
+          <h2 class="tucked-card-salutation">
+            Dearest <span id="tucked-to-name">My Love</span>,
+          </h2>
+
+          <!-- Content Row: Attached Polaroid + Ruled Love Letter -->
+          <div class="tucked-content-row">
+            <!-- Attached Mini Polaroid Memory -->
+            <div class="tucked-polaroid-wrap" id="tucked-polaroid-wrap">
+              <div class="tucked-polaroid-washi">♥</div>
+              <div class="tucked-polaroid-frame">
+                <img id="tucked-polaroid-img" class="tucked-polaroid-img" src="/letter-assets/photo_polaroid.png" alt="Memory" />
+              </div>
+              <div class="tucked-polaroid-chin">u + me = &lt;3</div>
+            </div>
+
+            <!-- Full Readable Love Message with Ruled Stationery Lines -->
+            <div class="tucked-body-wrap custom-scroll">
+              <p id="tucked-body-content" class="tucked-body-content"></p>
+            </div>
+          </div>
+
+          <!-- Card Footer: Signature & Fold Action Button -->
+          <div class="tucked-card-footer">
+            <div class="tucked-sig-block">
+              <span class="tucked-sig-label">With all my love,</span>
+              <span id="tucked-from-name" class="tucked-sig-author">Yours Forever ♡</span>
+            </div>
+            <button id="btn-tucked-collapse" class="btn-tucked-collapse" title="Fold note and return to bouquet">
+              <span class="btn-icon">💌</span>
+              <span class="btn-label">Fold &amp; Return to Bouquet</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ----------------------------------------------------------- -->
+    <!-- 3.3 SECTION 2: ROMANTIC LOVE LETTER SECTION                    -->
+    <!-- Unsealed and presented in full reading view                   -->
+    <!-- ----------------------------------------------------------- -->
+    <section id="love-letter-section" class="love-letter-section">
+      <!-- Soft Atmospheric Ambient Glow -->
+      <div class="love-letter-ambient-glow"></div>
+
+      <!-- 1 Floating Collapse Button on Letter Page -->
+      <button id="btn-return-bouquet" class="btn-return-bouquet" title="Collapse letter & return to bouquet">
+        <span>← Fold & Return to Bouquet 💌</span>
+      </button>
+
+      <div class="letter-stage-wrapper">
+        <!-- 1. Romantic Title Header -->
+        <div class="scrapbook-title-header">
+          <span class="title-hash">#</span>
+          <span class="title-love">Love</span>
+          <span class="title-letter">letter</span>
+        </div>
+
+        <!-- 2. Creative Scrapbook Collage Desk -->
+        <div class="scrapbook-collage-desk">
+          
+          <!-- Top-Left Couple Polaroid (Overlapping top-left of letter) -->
+          <div class="scrapbook-polaroid-main" id="polaroid-wrapper">
+            <!-- Heart Sticker on Top -->
+            <div class="polaroid-heart-tape">
+              <svg viewBox="0 0 32 32" class="heart-tape-svg">
+                <path d="M16 28 C16 28 3 20 3 11 C3 6 7 2 12 2 C14.5 2 16 3.5 16 3.5 C16 3.5 17.5 2 20 2 C25 2 29 6 29 11 C29 20 16 28 16 28 Z" fill="#e11d48"/>
+              </svg>
+            </div>
+            
+            <div class="polaroid-photo-frame">
+              <img id="polaroid-img" class="polaroid-user-photo" src="/letter-assets/photo_polaroid.png" alt="Couple Memory" />
+              <!-- Subtle lipstick doodle -->
+              <svg class="polaroid-doodle" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 45 25 Q 60 45 42 65 Q 38 72 44 80" stroke="#d81e28" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                <path d="M 37 74 L 44 80 L 48 72" stroke="#d81e28" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <path d="M 32 35 C 32 30 26 28 24 33 C 22 28 16 30 16 35 C 16 42 24 46 24 46 C 24 46 32 42 32 35 Z" fill="#d81e28"/>
+              </svg>
+            </div>
+            <div class="polaroid-chin-text">
+              <span id="polaroid-name-caption">u+me=&lt;3</span>
+            </div>
+          </div>
+
+          <!-- Central Ruled Stationery Notepad Sheet -->
+          <div class="scrapbook-notepad-sheet" id="stationery-wrapper">
+            <!-- Header with Date & Script Subheading -->
+            <div class="notepad-header">
+              <div class="notepad-date-tag">
+                <span class="date-line"></span>
+                <span class="date-text">today &amp; forever</span>
+                <span class="date-line"></span>
+              </div>
+              <div class="notepad-script-heading">love you forever, my love</div>
+            </div>
+
+            <!-- Letter Body on Ruled Stationery Paper -->
+            <div class="notepad-letter-body">
+              <h3 class="notepad-salutation">Dear <span id="scrapbook-to-name">Kenes</span>,</h3>
+              <div class="notepad-message" id="scrapbook-body-content"></div>
+            </div>
+
+            <!-- Hand-drawn Heart Doodle & Signature at Bottom-Left -->
+            <div class="notepad-signature-block">
+              <svg class="doodle-heart-icon" viewBox="0 0 54 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 27 54 C 27 54 8 36 8 20 C 8 10 16 4 25 6 C 29 7 32 11 32 11 C 32 11 35 7 39 6 C 48 4 56 10 56 20 C 56 36 27 54 27 54 Z" stroke="#841b2d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <path d="M 25 58 C 30 46 34 33 33 18" stroke="#841b2d" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+              <div class="notepad-signature-info">
+                <span class="sig-label">From:</span>
+                <span id="scrapbook-from-name" class="sig-author">Radleigh</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom-Right Mini Accent Polaroid -->
+          <div class="scrapbook-polaroid-mini" id="stamp-wrapper">
+            <!-- Mini Ribbon Bow -->
+            <div class="polaroid-mini-bow">🎀</div>
+            <div class="polaroid-mini-frame">
+              <img id="stamp-img" class="polaroid-mini-photo" src="/letter-assets/photo_mini.png" alt="Memory" />
+            </div>
+            <div class="polaroid-mini-chin">
+              <span>me + u</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Bottom Collapse Card Action -->
+        <div class="letter-collapse-row">
+          <button id="btn-bottom-collapse" class="btn-bottom-collapse" title="Fold letter & return to bouquet">
+            <span class="collapse-icon">💌</span>
+            <span class="collapse-text">Fold Letter & Return to Bouquet</span>
+            <span class="collapse-sparkle">✨</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+
+
+  <!-- Petal Confetti Canvas -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <script>
+    // =========================================================================
+    // TYPE GARDEN & TRANSITION SCRIPT
+    // =========================================================================
+    (function() {
+      const F = '"Playfair Display", Georgia, serif';
+      const TARGET_TEXT = "My Love";
+
+      // Cinematic Transition Video Asset & Playback Speed
+      const TRANSITION_VIDEO_SRC = '/transition.mp4';
+      const TRANSITION_PLAYBACK_SPEED = 1.6; // Increased speed (1.6x for brisk, fluid transition)
+
+      // Color Palette for Type Garden
+      const C = {
+        bg: '#000000',
+        red: '#FF1400',
+        blue: '#3257FF',
+        line: '#FFB4A8',
+        text: '#FFFFFF',
+        vein: '#000000'
+      };
+
+      // State Object
+      const state = {
+        boil: true,
+        recoil: 20,
+        density: 1.15
+      };
+
+      // DOM Elements
+      const gardenView = document.getElementById('garden-view');
+      const cv = document.getElementById('cv');
+      const g = cv.getContext('2d');
+      const tapIndicator = document.getElementById('tap-indicator');
+      const videoTransitionLayer = document.getElementById('video-transition-layer');
+      const transitionVideo = document.getElementById('transition-video');
+      const flashScreenOverlay = document.getElementById('flash-screen-overlay');
+      const flowerTransitionLayer = document.getElementById('flower-transition-layer');
+      const bouquetPage = document.getElementById('bouquet-page');
+      const bouquetHeroSection = document.getElementById('bouquet-hero-section');
+      const loveLetterSection = document.getElementById('love-letter-section');
+      const bouquetStage = document.getElementById('bouquet-stage');
+      const bouquetMainImg = document.getElementById('bouquet-main-img');
+      const unsealLetterIndicator = document.getElementById('unseal-letter-indicator');
+      const btnReturnBouquet = document.getElementById('btn-return-bouquet');
+      const btnBottomCollapse = document.getElementById('btn-bottom-collapse');
+      const ribbonPeekNote = document.getElementById('ribbon-peek-note');
+      const tuckedNoteOverlay = document.getElementById('tucked-note-overlay');
+      const tuckedLetterCard = document.getElementById('tucked-letter-card');
+      const btnTuckedCollapse = document.getElementById('btn-tucked-collapse');
+      const btnTuckedClose = document.getElementById('btn-tucked-close');
+      const tuckedToName = document.getElementById('tucked-to-name');
+      const tuckedBodyContent = document.getElementById('tucked-body-content');
+      const tuckedFromName = document.getElementById('tucked-from-name');
+      const tuckedPolaroidImg = document.getElementById('tucked-polaroid-img');
+
+      const scrapbookCanvas = document.getElementById('scrapbook-canvas');
+      const scrapbookToName = document.getElementById('scrapbook-to-name');
+      const scrapbookBodyContent = document.getElementById('scrapbook-body-content');
+      const scrapbookFromName = document.getElementById('scrapbook-from-name');
+      const polaroidNameCaption = document.getElementById('polaroid-name-caption');
+      const polaroidWrapper = document.getElementById('polaroid-wrapper');
+      const stationeryWrapper = document.getElementById('stationery-wrapper');
+      const stampWrapper = document.getElementById('stamp-wrapper');
+      const polaroidImg = document.getElementById('polaroid-img');
+      const stampImg = document.getElementById('stamp-img');
+
+      const pageRecipientTitle = document.getElementById('page-recipient-title');
+      const pageSenderName = document.getElementById('page-sender-name');
+
+      const confettiCanvas = document.getElementById('confetti-canvas');
+      const cg = confettiCanvas.getContext('2d');
+
+      // Check stored custom inputs from App.jsx or previous direct edits
+      let storedTo = '';
+      let storedFrom = '';
+      let storedNote = '';
+      try {
+        storedTo = localStorage.getItem('bouquet_recipient_name') || '';
+        storedFrom = localStorage.getItem('bouquet_sender_name') || '';
+        storedNote = localStorage.getItem('bouquet_love_note') || '';
+      } catch (err) {}
+
+      // URL parameters for personalization (Priority: URL > localStorage > Default Reference Value)
+      const urlParams = new URLSearchParams(window.location.search);
+      const recipientTo = urlParams.get('to') || urlParams.get('for') || storedTo || 'Kenes';
+      const senderFrom = urlParams.get('from') || urlParams.get('by') || storedFrom || 'Radleigh';
+      const defaultHeartfeltNote = "Just a quick love letter because you've been living in my head rent-free since day one.\n\nYou're my safe space, my biggest flex, and my favorite person all in one.\n\nI'm honestly so obsessed with everything about you.\n\nThank you for being mine and for making everything feel so easy.\n\nYou're a literal 10/10 and I'm never letting go.";
+      const rawNote = urlParams.get('note') || urlParams.get('message') || storedNote || '';
+      const noteContent = rawNote.trim().length > 0 ? rawNote : defaultHeartfeltNote;
+      const bouquetPreset = urlParams.get('preset') || 'rose';
+
+      // Set Bouquet Preset Image
+      if (bouquetPreset === 'tulip') bouquetMainImg.src = '/bouquet/tulipbouquet.png';
+      else if (bouquetPreset === 'lily') bouquetMainImg.src = '/bouquet/lilybouquet.png';
+      else if (bouquetPreset === 'sunflower' || bouquetPreset === 'sun') bouquetMainImg.src = '/bouquet/sunbouquet.png';
+      else bouquetMainImg.src = '/bouquet/rosebouquet.png';
+
+      // Populate Text Elements
+      pageRecipientTitle.textContent = `For ${recipientTo}`;
+      pageSenderName.textContent = senderFrom;
+
+      // Populate Scrapbook Elements
+      if (scrapbookToName) scrapbookToName.textContent = recipientTo;
+      if (polaroidNameCaption) polaroidNameCaption.textContent = `${recipientTo}.`;
+      if (scrapbookBodyContent) scrapbookBodyContent.textContent = noteContent;
+      if (scrapbookFromName) scrapbookFromName.textContent = `${senderFrom}.`;
+
+      // Populate Tucked Note Fields
+      if (tuckedToName) tuckedToName.textContent = recipientTo;
+      if (tuckedBodyContent) tuckedBodyContent.textContent = noteContent;
+      if (tuckedFromName) tuckedFromName.textContent = `${senderFrom} ♡`;
+
+      // Restore custom uploaded photos from localStorage or use defaults
+      try {
+        const savedPolaroid = localStorage.getItem('bouquet_custom_polaroid');
+        if (savedPolaroid) {
+          if (polaroidImg) polaroidImg.src = savedPolaroid;
+          if (tuckedPolaroidImg) tuckedPolaroidImg.src = savedPolaroid;
+        } else {
+          if (polaroidImg) polaroidImg.src = '/letter-assets/photo_polaroid.png';
+          if (tuckedPolaroidImg) tuckedPolaroidImg.src = '/letter-assets/photo_polaroid.png';
+        }
+        const savedStamp = localStorage.getItem('bouquet_custom_stamp');
+        if (savedStamp && stampImg) {
+          stampImg.src = savedStamp;
+        } else if (stampImg) {
+          stampImg.src = '/letter-assets/photo_mini.png';
+        }
+      } catch (err) {}
+
+      // Type Garden Engine Variables
+      let W = 0, H = 0, dpr = 1;
+      let letters = [];
+      let uid = 1;
+      let cache = {};
+      let Sd = 0, St = 0, cx = 0, cy = 0, ctx_ = 0, cty = 0;
+      let wrapped = false;
+      let mx = null, my = null;
+      let flies = [], perch = [];
+      let fa = {};
+      let lastFlTime = null;
+      let isTransitioning = false;
+
+      // Math Helpers
+      function h(n) { const x = Math.sin(n) * 43758.5453; return x - Math.floor(x); }
+      function spr(t, k = 7, w = 16) { if (t <= 0) return 0; return 1 - Math.exp(-t * k) * Math.cos(t * w); }
+      function eo(t) { if (t <= 0) return 0; if (t >= 1) return 1; return 1 - Math.pow(1 - t, 3); }
+      function rng(seed) {
+        let s = seed | 0;
+        return () => {
+          s = (s + 0x6D2B79F5) | 0;
+          let t = Math.imul(s ^ (s >>> 15), 1 | s);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+      function bez(a, b, c, d, n) {
+        const P = [];
+        for (let i = 0; i <= n; i++) {
+          const t = i / n, u = 1 - t;
+          P.push([
+            u*u*u*a[0] + 3*u*u*t*b[0] + 3*u*t*t*c[0] + t*t*t*d[0],
+            u*u*u*a[1] + 3*u*u*t*b[1] + 3*u*t*t*c[1] + t*t*t*d[1]
+          ]);
+        }
+        return P;
+      }
+      function at(P, u) {
+        const n = P.length;
+        const i = Math.min(n - 2, Math.max(1, Math.round(u * (n - 1))));
+        return [P[i], Math.atan2(P[i+1][1] - P[i-1][1], P[i+1][0] - P[i-1][0])];
+      }
+      function jit(id, f, amp) {
+        if (!amp) return [0, 0, 0];
+        return [
+          (h(id * 1.37 + f * 7.13) * 2 - 1) * amp,
+          (h(id * 2.71 + f * 3.11) * 2 - 1) * amp,
+          (h(id * 5.3 + f * 1.7) * 2 - 1) * 0.035
+        ];
+      }
+      function path(c, p, closed) {
+        const n = p.length; if (n < 2) return;
+        const m = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+        if (closed) {
+          const s = m(p[n-1], p[0]); c.moveTo(s[0], s[1]);
+          for (let i = 0; i < n; i++) { const q = m(p[i], p[(i+1) % n]); c.quadraticCurveTo(p[i][0], p[i][1], q[0], q[1]); }
+          c.closePath();
+        } else {
+          c.moveTo(p[0][0], p[0][1]);
+          for (let i = 1; i < n - 1; i++) { const q = m(p[i], p[i+1]); c.quadraticCurveTo(p[i][0], p[i][1], q[0], q[1]); }
+          c.lineTo(p[n-1][0], p[n-1][1]);
+        }
+      }
+      function vine(base, dir, len, amp, waves, ph, bend, n = 40) {
+        const P = [[base[0], base[1]]], step = len / n;
+        let x = base[0], y = base[1];
+        for (let i = 1; i <= n; i++) {
+          const u = i / n, a = dir + bend * u + amp * Math.sin(u * Math.PI * waves + ph) * Math.min(1, u * 3);
+          x += Math.cos(a) * step; y += Math.sin(a) * step; P.push([x, y]);
+        }
+        return P;
+      }
+      function curl(P, sign, rad) {
+        const n = P.length, e = P[n - 1], a = Math.atan2(e[1] - P[n - 2][1], e[0] - P[n - 2][0]);
+        const c = [e[0] - Math.sin(a) * sign * rad, e[1] + Math.cos(a) * sign * rad];
+        const a0 = Math.atan2(e[1] - c[1], e[0] - c[0]);
+        for (let i = 1; i <= 14; i++) {
+          const u = i / 14, t = a0 + sign * u * Math.PI * 1.6, rr = rad * (1 - 0.5 * u);
+          P.push([c[0] + Math.cos(t) * rr, c[1] + Math.sin(t) * rr]);
+        }
+        return P;
+      }
+      function weave(r, startLayer) {
+        const cuts = [];
+        const nc = 1 + Math.floor(r() * 3);
+        for (let i = 0; i < nc; i++) cuts.push(0.15 + r() * 0.7);
+        cuts.sort((a, b) => a - b);
+        const segs = [];
+        let u0 = 0, layer = startLayer;
+        for (const c of cuts) {
+          if (c <= u0) continue;
+          segs.push({ u0, u1: c, layer });
+          if (r() < 0.3) { const g = 0.02 + r() * 0.03; u0 = Math.min(0.98, c + g); } else u0 = c;
+          layer = 1 - layer;
+        }
+        segs.push({ u0, u1: 1, layer });
+        return segs;
+      }
+      function layerAt(segs, u) {
+        for (const s of segs) if (u >= s.u0 && u <= s.u1) return s.layer;
+        return segs[segs.length - 1].layer;
+      }
+
+      function backend(ctx) {
+        return {
+          fill: (p, col) => { ctx.beginPath(); path(ctx, p, true); ctx.fillStyle = col; ctx.fill(); },
+          stroke: (p, col, w) => { ctx.beginPath(); path(ctx, p, false); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke(); },
+          rect: (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x, y, w, h); },
+          text: (ch, x, y, S, col) => { ctx.font = `700 ${S}px ${F}`; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = col; ctx.fillText(ch, x, y); }
+        };
+      }
+
+      // Butterflies & Visitors
+      function butterfly(B, x, y, s, ang, o) {
+        const ca = Math.cos(ang), sa = Math.sin(ang);
+        const T = (px, py) => [x + (px * ca - py * sa) * s, y + (px * sa + py * ca) * s];
+        const wing = (cx, cy, rx, ry, a, side) => {
+          const pts = [], c = Math.cos(a), sn = Math.sin(a);
+          for (let k = 0; k < 22; k++) {
+            const th = k / 22 * Math.PI * 2, r = 1 + 0.08 * Math.sin(th * 3), lx = Math.cos(th) * rx * r, ly = Math.sin(th) * ry * r;
+            pts.push(T(side * (cx + lx * c - ly * sn) * (0.12 + 0.88 * o), cy + lx * sn + ly * c));
+          }
+          return pts;
+        };
+        for (const sd of [-1, 1]) {
+          B.fill(wing(0.46, 0.28, 0.36, 0.3, 0.5 * sd * sd, sd), C.text);
+          B.fill(wing(0.55, -0.32, 0.55, 0.36, -0.55, sd), C.text);
+          if (o > 0.35) B.fill(wing(0.66, -0.4, 0.13, 0.11, 0, sd), C.red);
+        }
+        const body = [];
+        for (let k = 0; k < 18; k++) { const th = k / 18 * Math.PI * 2; body.push(T(Math.cos(th) * 0.08, Math.sin(th) * 0.48)); }
+        B.fill(body, C.blue);
+        const lw = Math.max(0.8, s * 0.05);
+        B.stroke([T(0, -0.42), T(-0.14, -0.72), T(-0.24, -0.86)], C.blue, lw);
+        B.stroke([T(0, -0.42), T(0.14, -0.72), T(0.24, -0.86)], C.blue, lw);
+      }
+
+      function spawnFly(cx, cy) {
+        if (flies.length >= 5) { const o = flies.find(f => f.st !== 'leave'); if (o) flyOff(o); }
+        const taken = new Set(flies.filter(f => f.st !== 'leave').map(f => f.pid));
+        let best = null, bd = 1e9;
+        for (const p of perch) { if (taken.has(p.id)) continue; const d = Math.hypot(p.x - cx, p.y - cy); if (d < bd) { bd = d; best = p; } }
+        const left = cx < W / 2, sz = Math.max(9, Sd * 0.09);
+        flies.push({
+          x: left ? -40 : W + 40, y: cy + (Math.random() - 0.5) * H * 0.4,
+          vx: 0, vy: 0, st: best ? 'fly' : 'wander', pid: best ? best.id : null,
+          hx: cx, hy: cy, t0: performance.now(), ph: Math.random() * 6, sz,
+          seed: Math.random() * 100, ang: 0
+        });
+      }
+      function flyOff(f) { f.st = 'leave'; f.pid = null; f.ex = f.x < W / 2 ? -80 : W + 80; f.ey = f.y - H * 0.3; }
+
+      function drawFlies(B, now) {
+        const dt = Math.min(48, now - (lastFlTime || now)); lastFlTime = now;
+        const byId = {}; for (const p of perch) byId[p.id] = p;
+        flies = flies.filter(f => {
+          const t = (now - f.t0) / 1000;
+          let tx, ty;
+          if (f.st === 'sit' || f.st === 'fly') {
+            const p = byId[f.pid];
+            if (!p) { flyOff(f); }
+            else { tx = p.x + p.R * 0.05; ty = p.y - p.R * 0.55; }
+          }
+          if (f.st === 'wander') {
+            tx = f.hx + Math.sin(t * 1.3 + f.seed) * 70; ty = f.hy + Math.sin(t * 2.1 + f.seed) * 40;
+            if (t > 3.5) flyOff(f);
+          }
+          if (f.st === 'leave') { tx = f.ex; ty = f.ey; }
+          if (f.st === 'sit') {
+            f.x += (tx - f.x) * 0.35; f.y += (ty - f.y) * 0.35; f.ang *= 0.85;
+            f.ph += dt * 0.004;
+            const burst = Math.sin(now / 1000 * 0.9 + f.seed) > 0.75;
+            f.open = burst ? 0.2 + 0.8 * Math.abs(Math.cos(now / 1000 * 9 + f.seed)) : 0.25 + 0.15 * Math.sin(f.ph);
+          } else {
+            const dx = tx - f.x, dy = ty - f.y, d = Math.hypot(dx, dy) || 1, sp = f.st === 'leave' ? 0.42 : Math.min(0.34, 0.06 + d * 0.0016);
+            const flut = Math.sin(t * 7 + f.seed) * 0.12, wob = Math.cos(t * 4.3 + f.seed) * 0.1;
+            const ax = (dx / d * sp + wob) - f.vx, ay = (dy / d * sp + flut) - f.vy;
+            f.vx += ax * 0.06 * dt / 16; f.vy += ay * 0.06 * dt / 16;
+            f.x += f.vx * dt; f.y += f.vy * dt + Math.sin(t * 13 + f.seed) * 0.6;
+            f.ang += (Math.max(-0.5, Math.min(0.5, f.vx * 1.4)) - f.ang) * 0.1;
+            f.open = Math.abs(Math.cos(t * 17 + f.seed));
+            if (f.st === 'fly' && d < 5) { f.st = 'sit'; f.ph = 0; }
+            if (f.st === 'leave' && (f.x < -60 || f.x > W + 60 || f.y < -60)) return false;
+          }
+          butterfly(B, f.x, f.y, f.sz, f.ang, f.open);
+          return true;
+        });
+      }
+
+      function near(x, y) {
+        if (mx == null) return null;
+        return [mx, my];
+      }
+
+      function faceTurn(e, x, y) {
+        let wx = 0, wy = 0;
+        const A = near(x, y);
+        if (A) {
+          const dx = A[0] - x, dy = A[1] - y, d = Math.hypot(dx, dy), reach = 300;
+          if (d < reach && d > 0.001) {
+            const w = 1 - d / reach, s = w * w * (3 - 2 * w) * Math.min(1, d / 40);
+            wx = dx / d * s; wy = dy / d * s;
+          }
+        }
+        const c = fa[e.id] || [0, 0];
+        c[0] += (wx - c[0]) * 0.09; c[1] += (wy - c[1]) * 0.09;
+        fa[e.id] = c;
+        return c;
+      }
+
+      function resize() {
+        const r = cv.getBoundingClientRect();
+        dpr = window.devicePixelRatio || 1;
+        if (!r.width) return;
+        W = r.width; H = r.height;
+        cv.width = Math.round(r.width * dpr);
+        cv.height = Math.round(r.height * dpr);
+
+        confettiCanvas.width = Math.round(r.width * dpr);
+        confettiCanvas.height = Math.round(r.height * dpr);
+
+        layout(true);
+      }
+
+      function mw(ch) {
+        if (cache[ch] != null) return cache[ch];
+        g.font = `700 100px ${F}`;
+        let w = g.measureText(ch).width / 100;
+        if (ch === ' ') w *= 1.4;
+        return (cache[ch] = w);
+      }
+
+      function layoutCore(A, width, height, prevWrap) {
+        const maxW = width * 0.85, S0 = height * 0.28, LH = 2.1;
+        const ws = A.map(l => mw(l.ch));
+        const words = []; let cur = null;
+        A.forEach((l, i) => {
+          if (l.ch === ' ') { if (cur) { words.push(cur); cur = null; } words.push({ sp: true, idx: [i] }); }
+          else { if (!cur) cur = { idx: [] }; cur.idx.push(i); }
+        });
+        if (cur) words.push(cur);
+
+        const lineW = (li, S) => {
+          let e = li.length; while (e > 0 && A[li[e-1]].ch === ' ') e--;
+          let w = 0; for (let k = 0; k < e; k++) w += ws[li[k]]; return w * S;
+        };
+        const wrap = S => {
+          const lines = [[]]; let lw = 0;
+          for (const w of words) {
+            const ww = w.idx.reduce((s, i) => s + ws[i], 0) * S;
+            if (!w.sp && lw > 0 && lw + ww > maxW) { lines.push([]); lw = 0; }
+            lines[lines.length - 1].push(...w.idx); lw += ww;
+          }
+          return lines;
+        };
+
+        let lines = [A.map((_, i) => i)];
+        const unit = lineW(lines[0], 1);
+        let S = unit > 0 ? Math.min(S0, maxW / unit) : S0;
+        const multi = words.filter(w => !w.sp).length > 1;
+        let wrapped = multi && (S < height * 0.1 || (prevWrap && S < height * 0.14));
+        if (wrapped) {
+          let lo = height * 0.03, hi = height * 0.15;
+          for (let k = 0; k < 22; k++) {
+            const mid = (lo + hi) / 2, ls = wrap(mid);
+            const ok = ls.every(li => lineW(li, mid) <= maxW) && ls.length * LH * mid <= height * 0.82;
+            if (ok) lo = mid; else hi = mid;
+          }
+          S = lo; lines = wrap(S);
+          if (lines.length < 2) wrapped = false;
+        }
+        const n = lines.length, lh = LH * S;
+        lines.forEach((li, k) => {
+          let x = width / 2 - lineW(li, S) / 2;
+          const y = height / 2 + (k - (n - 1) / 2) * lh + 0.33 * S;
+          li.forEach(i => { const l = A[i], w = ws[i] * S; l.tx = x + w / 2; l.ty = y; l.tw = w; l.line = k; x += w; });
+        });
+        return { S, wrapped, n };
+      }
+
+      function layout(snap) {
+        if (!W) return;
+        const A = letters.filter(l => !l.dead);
+        const res = layoutCore(A, W, H, wrapped);
+        wrapped = res.wrapped;
+        A.forEach(l => { if (l.x == null) { l.x = l.tx; l.y = l.ty; } });
+        const S = res.S, last = A[A.length - 1];
+        St = S;
+        ctx_ = last ? last.tx + last.tw / 2 + 0.07 * S : W / 2;
+        cty = last ? last.ty - 0.33 * S : H / 2;
+        if (snap || !Sd) { Sd = S; cx = ctx_; cy = cty; A.forEach(l => { l.x = l.tx; l.y = l.ty; }); }
+      }
+
+      function wordParams(ws) {
+        const r = rng(ws * 7 + 13), dens = state.density;
+        return {
+          roseP: 0.45 + r() * 0.35,
+          leafy: (0.7 + r() * 0.8) * dens,
+          dens,
+          lean: (r() - 0.5) * 0.6,
+          big: 0.95 + r() * 0.45,
+          curvy: 0.85 + r() * 0.6,
+          bridgeP: Math.min(0.95, (0.5 + r() * 0.35) * dens),
+          w: 0.5
+        };
+      }
+
+      function grow(r, E, nid, p, o) {
+        const tip = o.tip || (r() < p.roseP ? 'rose' : r() < 0.45 ? 'fan' : r() < 0.6 ? 'leaf' : 'curl');
+        let P = o.pts || vine(o.base, o.dir, o.len, (0.35 + r() * 0.45) * p.curvy, 1 + r() * 1.6, r() * 6.28, (r() - 0.5) * 1.2, 40);
+        if (tip === 'curl') P = curl(P, r() < 0.5 ? -1 : 1, 0.05 + r() * 0.05);
+        const segs = weave(r, o.layer0 != null ? o.layer0 : (r() < 0.5 ? 0 : 1));
+        const dur = Math.max(320, (o.len || 0.8) * 620);
+        const thorns = []; const nt = Math.floor(r() * 2.5);
+        for (let i = 0; i < nt; i++) thorns.push({ u: 0.15 + r() * 0.65, s: r() < 0.5 ? -1 : 1 });
+        E.push({ t: 'stem', id: nid(), pts: P, segs, d0: o.d0, dur, w: o.depth ? 0.82 : 1, thorns });
+
+        const nl = Math.floor(r() * 2.8 * p.leafy);
+        let sd = r() < 0.5 ? -1 : 1;
+        for (let i = 0; i < nl; i++) {
+          const u = 0.25 + r() * 0.6, [q, a] = at(P, u); sd = -sd;
+          E.push({ t: 'leaf', id: nid(), x: q[0], y: q[1], a: a + sd * (0.55 + r() * 0.5), L: (0.14 + r() * 0.2) * (o.depth ? 0.8 : 1), bend: (r() - 0.5) * 1.2, layer: layerAt(segs, u), d0: o.d0 + dur * u });
+        }
+
+        const [tp, ta] = at(P, 1), td = o.d0 + dur * 0.8, tl = layerAt(segs, 1);
+        if (tip === 'rose') {
+          const R = (0.15 + r() * 0.18) * p.big * (o.depth ? 0.75 : 1);
+          const over = tp[1] > -0.78 && tp[1] < 0.05 && Math.abs(tp[0]) < p.w * 0.5;
+          const layer = over ? (r() < 0.22 ? 1 : 0) : (r() < 0.6 ? 1 : tl);
+          E.push({ t: 'rose', id: nid(), x: tp[0], y: tp[1], R, rot: (r() - 0.5) * 1.0, ph1: r() * 6.28, ph2: r() * 6.28, turns: 1.8 + r() * 1, layer, d0: td });
+          if (r() < 0.2) {
+            const oo = ta + (r() < 0.5 ? 1 : -1) * 1.3;
+            E.push({ t: 'rose', id: nid(), x: tp[0] + Math.cos(oo) * R * 1.4, y: tp[1] + Math.sin(oo) * R * 1.4, R: R * (0.6 + r() * 0.3), rot: (r() - 0.5) * 1.2, ph1: r() * 6.28, ph2: r() * 6.28, turns: 1.8 + r(), layer, d0: td + 120 });
+          }
+        } else if (tip === 'fan') {
+          const spread = 0.6 + r() * 0.3;
+          for (let j = 0; j < 2; j++) E.push({ t: 'leaf', id: nid(), x: tp[0], y: tp[1], a: ta + (j - 0.5) * spread, L: 0.2 + r() * 0.2, bend: (j - 0.5) * 0.8, layer: tl, d0: td + j * 60 });
+        } else if (tip === 'leaf') {
+          E.push({ t: 'leaf', id: nid(), x: tp[0], y: tp[1], a: ta + (r() - 0.5) * 0.3, L: 0.16 + r() * 0.16, bend: (r() - 0.5), layer: tl, d0: td });
+        }
+
+        if (!o.depth && r() < 0.3) {
+          const u = 0.35 + r() * 0.35, [q, a] = at(P, u);
+          grow(r, E, nid, p, { base: q, dir: a + (r() < 0.5 ? -1 : 1) * (0.7 + r() * 0.4), len: (o.len || 0.8) * (0.35 + r() * 0.2), d0: o.d0 + dur * u, depth: 1, layer0: layerAt(segs, u) });
+        }
+        return P;
+      }
+
+      function gen(l) {
+        const r = rng((l.ws ^ Math.imul(l.wi + 1, 2654435761)) + Math.floor(Math.random() * 1e6));
+        const p = wordParams(l.ws), E = []; let k0 = 0; const nid = () => l.id * 100 + (k0++);
+        const w = mw(l.ch), inX = () => (r() - 0.5) * w * 0.7; p.w = w;
+        const nUp = 1 + (r() < 0.45 * p.dens ? 1 : 0);
+        for (let i = 0; i < nUp; i++) {
+          grow(r, E, nid, p, { base: [inX(), -r() * 0.3], dir: -Math.PI / 2 + p.lean * 0.5 + (r() - 0.5) * 0.7, len: 0.6 + r() * 0.5, d0: 40 + i * 130, tip: l.wi === 0 && i === 0 ? 'rose' : null });
+        }
+        if (r() < 0.4 * p.dens) grow(r, E, nid, p, { base: [inX(), -0.1 - r() * 0.35], dir: Math.PI / 2 + (r() - 0.5) * 0.8, len: 0.35 + r() * 0.35, d0: 160 });
+        if (l.prev && r() < p.bridgeP) {
+          const px = -(mw(l.prev.ch) + w) / 2;
+          const a = [inX(), -0.05 - r() * 0.55], b = [px + (r() - 0.5) * 0.25, -0.05 - r() * 0.55];
+          const bulge = (r() < 0.55 ? -1 : 1) * (0.4 + r() * 0.4), dx = b[0] - a[0];
+          let P = bez(a, [a[0] + dx * 0.15, a[1] + bulge], [b[0] - dx * 0.15, b[1] + bulge * 0.9], b, 40);
+          if (r() < 0.45) P = P.slice(0, Math.floor(P.length * (0.7 + r() * 0.2)));
+          grow(r, E, nid, p, { pts: P, len: Math.abs(dx) + Math.abs(bulge), d0: 90, tip: r() < 0.5 ? 'curl' : r() < 0.5 ? 'leaf' : 'rose' });
+        }
+        if (l.wi === 0) grow(r, E, nid, p, { base: [-w * 0.3, -0.15 - r() * 0.4], dir: Math.PI + (r() - 0.5) * 1.2, len: 0.45 + r() * 0.3, d0: 120, tip: 'curl' });
+        l.els = E;
+        l.endEls = null;
+        const T = [], tr = rng(l.id * 977 + Math.floor(Math.random() * 1e6));
+        grow(tr, T, () => l.id * 100 + 90 + T.length, p, { base: [w * 0.25, -0.1 - tr() * 0.45], dir: (tr() - 0.5) * 1.4, len: 0.45 + tr() * 0.25, d0: 0, tip: 'curl', depth: 1 });
+        l.tend = T.filter(e => e.t === 'stem').slice(0, 1);
+      }
+
+      function genEnd(l, rel) {
+        const r = rng(l.ws + l.wi * 31 + Math.floor(Math.random() * 1e6)), p = wordParams(l.ws), E = [];
+        let k0 = 50; const nid = () => l.id * 100 + (k0++);
+        const w = mw(l.ch), n = 1 + Math.floor(r() * 2.5); p.w = w;
+        for (let i = 0; i < n; i++) {
+          const dir = -Math.PI / 2 + 0.6 + (i - (n - 1) / 2) * 0.9 + (r() - 0.5) * 0.4;
+          grow(r, E, nid, p, { base: [(r() - 0.2) * w * 0.6, -r() * 0.5], dir, len: 0.4 + r() * 0.45, d0: rel + 40 + i * 90, depth: 1, tip: i === 0 || r() < 0.5 ? 'rose' : 'fan' });
+        }
+        l.endEls = E;
+      }
+
+      function addLetter(ch, now) {
+        const A = letters.filter(l => !l.dead), last = A[A.length - 1];
+        if (ch === ' ') {
+          if (last && last.ch !== ' ') { last.cut = now; genEnd(last, now - last.birth); }
+          letters.push({ ch: ' ', id: uid++, birth: now, els: [] });
+          layout(); return;
+        }
+        const same = last && last.ch !== ' ';
+        const l = {
+          ch, id: uid++, birth: now, tb: now,
+          ws: same ? last.ws : Math.floor(Math.random() * 1e9),
+          wi: same ? last.wi + 1 : 0, prev: same ? last : null
+        };
+        gen(l);
+        letters.push(l);
+        layout();
+      }
+
+      function strokeRange(B, P, a, b, col, w) {
+        const n = P.length - 1, ia = a * n, ib = b * n;
+        const lerp = t => { const i = Math.min(n - 1, Math.floor(t)), f = t - i; return [P[i][0] + (P[i+1][0] - P[i][0]) * f, P[i][1] + (P[i+1][1] - P[i][1]) * f]; };
+        const pts = [lerp(ia)];
+        for (let i = Math.floor(ia) + 1; i < ib; i++) pts.push(P[i]);
+        pts.push(lerp(ib));
+        if (pts.length >= 2) B.stroke(pts, col, w);
+      }
+      function thorn(B, P, u, s, S) {
+        const [p, a] = at(P, u), d = a + s * 2.3, L = S * 0.045;
+        B.stroke([p, [p[0] + Math.cos(d) * L, p[1] + Math.sin(d) * L]], C.blue, S * 0.022);
+      }
+      function leaf(B, bx, by, a, L, bend) {
+        if (L < 0.5) return;
+        const ca = Math.cos(a), sa = Math.sin(a), px = -sa, py = ca;
+        const ax = u => { const b = Math.sin(Math.PI * u) * bend * 0.15 * L; return [bx + ca * u * L + px * b, by + sa * u * L + py * b]; };
+        const hw = u => L * 0.18 * Math.sin(Math.PI * Math.pow(u, 0.8));
+        const N = 12, s1 = [], s2 = [];
+        for (let i = 0; i <= N; i++) { const u = i / N, c = ax(u), w = hw(u); s1.push([c[0] + px * w, c[1] + py * w]); s2.push([c[0] - px * w, c[1] - py * w]); }
+        const tip = ax(1), base = ax(0);
+        B.fill([base, ...s1.slice(1, N), tip, tip, ...s2.slice(1, N).reverse(), base], C.blue);
+        if (L > 6) {
+          const v = []; for (let i = 0; i <= 8; i++) v.push(ax(0.08 + 0.72 * i / 8));
+          B.stroke(v, C.vein, Math.max(0.8, L * 0.03));
+        }
+      }
+      function rose(B, cx, cy, R, rot, e, a, tl) {
+        const cr = Math.cos(rot), sr = Math.sin(rot);
+        const tm = tl ? Math.hypot(tl[0], tl[1]) : 0, ux = tm ? tl[0] / tm : 0, uy = tm ? tl[1] / tm : 0, sq = -0.28 * tm;
+        const T = (x, y, z = 0) => {
+          let dx = x * cr - y * sr, dy = x * sr + y * cr;
+          if (tm) { const k = (dx * ux + dy * uy) * sq; dx += k * ux + tl[0] * R * z; dy += k * uy + tl[1] * R * z; }
+          return [cx + dx, cy + dy];
+        };
+        const P = [
+          [0, -0.36, 0.56, 0.54, 0, 0, 0],
+          [-0.5, -0.06, 0.6, 0.6, -0.35, 0, 0],
+          [0.52, -0.06, 0.6, 0.6, 0.35, 0, 0],
+          [-0.42, 0.3, 0.62, 0.48, 0.2, 0.12, 1],
+          [0.47, 0.3, 0.62, 0.48, -0.2, 0.12, 1],
+          [0.05, 0.42, 0.56, 0.38, 0, 0.14, 0]
+        ];
+        const ax0 = 0, ay0 = 0.5, lw = Math.max(0.8, R * 0.045), st = 85;
+        P.forEach((q, i) => {
+          const s = spr((a - i * st) / 1000, 8, 14); if (s <= 0.001) return;
+          const open = (1 - Math.min(1, s)) * (q[0] < 0 ? 0.5 : -0.5), ang = q[4] + open, ca = Math.cos(ang), sa = Math.sin(ang);
+          const pt = (th, j) => {
+            const rr = 1 + 0.08 * Math.sin(3 * th + e.ph1 + i) + 0.04 * Math.sin(5 * th + e.ph2);
+            const lx = Math.cos(th) * q[2] * rr, ly = Math.sin(th) * q[3] * rr;
+            const px = q[0] + lx * ca - ly * sa, py = q[1] + lx * sa + ly * ca;
+            return T((ax0 + (px - ax0) * s) * R, (ay0 + (py - ay0) * s) * R, q[5]);
+          };
+          const pts = []; for (let k = 0; k < 26; k++) pts.push(pt(k / 26 * Math.PI * 2));
+          B.fill(pts, C.red);
+          if (q[6] && R >= 12 && s > 0.4) {
+            const arc = []; for (let k = 0; k <= 14; k++) arc.push(pt(Math.PI * (1.18 + 0.64 * k / 14)));
+            strokeRange(B, arc, 0, Math.min(1, (s - 0.4) / 0.5), C.line, lw * 0.8);
+          }
+        });
+        const fr = eo((a - P.length * st - 80) / 520);
+        if (fr > 0 && R > 3) {
+          const sp = [], scl = [];
+          const turns = R < 20 ? Math.min(e.turns, 1.3) : R < 32 ? e.turns * 0.8 : e.turns;
+          for (let i = 0; i <= 70; i++) {
+            const u = i / 70, th = e.ph1 + u * turns * Math.PI * 2, rr = R * (0.08 + 0.57 * u);
+            sp.push(T(Math.cos(th) * rr * 1.05, Math.sin(th) * rr * 0.72 - 0.12 * R, 0.34 - 0.24 * u));
+          }
+          strokeRange(B, sp, 0, fr, C.line, lw);
+          if (R >= 14) {
+            for (let i = 0; i <= 36; i++) {
+              const u = i / 36;
+              scl.push(T((-0.72 + 1.5 * u) * R, 0.36 * R + 0.16 * R * Math.abs(Math.sin(u * Math.PI * 3)), 0.18));
+            }
+            strokeRange(B, scl, 0, fr, C.line, lw);
+          }
+        }
+      }
+
+      function wpt(l, x, y, now) {
+        if (l.birth != null) {
+          const t = (now - l.birth) / 1000;
+          if (t > 0 && t < 2.5) {
+            const hh = Math.max(0, (l.y - y) / Sd), dmp = Math.exp(-t * 3.2), dir = (l.id % 2 ? 1 : -1);
+            x += Sd * 0.07 * hh * dmp * Math.sin(t * 11) * dir;
+            y += Sd * 0.035 * hh * dmp * Math.sin(t * 11 + 1.2);
+          }
+        }
+        if (l.lean) {
+          const hh = Math.min(2.5, Math.max(0, (l.y - y) / Sd)), f = hh * hh * 0.5 + hh * 0.5;
+          x += l.lean[0] * Sd * 0.1 * f;
+          y += l.lean[1] * Sd * 0.05 * f;
+        }
+        const ph = now / 3000 * Math.PI * 2;
+        const hBreathe = Math.max(0, (l.y - y) / Sd);
+        return [
+          x + Math.sin(ph + l.x * 0.003 + hBreathe * 1.1) * Sd * 0.02 * hBreathe,
+          y + Math.cos(ph + x * 0.002) * Sd * 0.006 * hBreathe
+        ];
+      }
+
+      function drawStem(B, e, l, age, kk, f, amp, layer, frO, now) {
+        const fr = frO != null ? frO : eo((age - e.d0) / e.dur) * kk; if (fr <= 0) return;
+        const j = jit(e.id, f, amp);
+        const P = e.pts.map(p => wpt(l, l.x + p[0] * Sd + j[0], l.y + p[1] * Sd + j[1], now));
+        for (const sg of e.segs) {
+          if (sg.layer !== layer) continue;
+          const b = Math.min(sg.u1, fr); if (b <= sg.u0) continue;
+          strokeRange(B, P, sg.u0, b, C.blue, Sd * 0.022 * (e.w || 1));
+        }
+        for (const th of e.thorns) {
+          if (fr > th.u && layerAt(e.segs, th.u) === layer) thorn(B, P, th.u, th.s, Sd);
+        }
+      }
+
+      function drawEl(B, e, l, age, kk, f, amp, now) {
+        const j = jit(e.id, f, amp);
+        const p = wpt(l, l.x + e.x * Sd + j[0], l.y + e.y * Sd + j[1], now);
+        if (e.t === 'leaf') {
+          const sc = spr((age - e.d0) / 1000, 7, 15) * kk; if (sc <= 0) return;
+          leaf(B, p[0], p[1], e.a + j[2], e.L * Sd * sc, e.bend);
+        } else if (e.t === 'rose') {
+          const a = age - e.d0; if (a < 0 || kk <= 0.001) return;
+          const tl = faceTurn(e, p[0], p[1]);
+          if (!l.dead && a > 700) perch.push({ id: e.id, x: p[0], y: p[1], R: e.R * Sd * kk });
+          rose(B, p[0], p[1], e.R * Sd * kk, e.rot + j[2] + (tl ? tl[0] * 0.22 : 0), e, a, tl);
+        }
+      }
+
+      function render(B, now) {
+        const L = letters, act = L.filter(l => !l.dead);
+        perch = [];
+        for (const l of L) {
+          let tx = 0, ty = 0;
+          const A = !l.dead && l.ch !== ' ' ? near(l.x, l.y - Sd * 0.6) : null;
+          if (A) {
+            const dx = A[0] - l.x, dy = A[1] - (l.y - Sd * 0.6), d = Math.hypot(dx, dy), reach = Math.max(260, Sd * 3.2);
+            if (d < reach && d > 1) { const w = 1 - d / reach, s = w * w * (3 - 2 * w); tx = dx / d * s; ty = dy / d * s; }
+          }
+          const c = l.lean || (l.lean = [0, 0]);
+          c[0] += (tx - c[0]) * 0.07; c[1] += (ty - c[1]) * 0.07;
+        }
+
+        const f = state.boil ? Math.floor(now / 120) : 0;
+        const amp = state.boil ? Math.max(0.8, Sd * 0.01) : 0;
+        const kd = l => l.dead ? 1 - eo((now - l.dead) / 260) : 1;
+
+        const drawLayer = layer => {
+          for (const l of L) {
+            if (l.ch === ' ' || !l.els) continue;
+            const age = now - l.birth, kk = kd(l);
+            const each = e => {
+              if (e.t === 'stem') drawStem(B, e, l, age, kk, f, amp, layer, null, now);
+              else if (e.layer === layer) drawEl(B, e, l, age, kk, f, amp, now);
+            };
+            l.els.forEach(each);
+            if (l.endEls) l.endEls.forEach(each);
+
+            const i = act.indexOf(l), nx = i >= 0 ? act[i + 1] : null;
+            if (l.tend && (l.dead || !nx || nx.ch === ' ')) {
+              let fr = eo(((now - l.tb) - 150) / 450);
+              if (l.cut != null) fr *= 1 - eo((now - l.cut) / 150) * Math.min(0.85, state.recoil / (0.6 * Sd));
+              for (const e of l.tend) drawStem(B, e, l, age, kk, f, amp, layer, fr * kk, now);
+            }
+          }
+        };
+
+        drawLayer(0);
+        for (const l of L) if (l.ch !== ' ' && !l.dead) B.text(l.ch, l.x, l.y, Sd, C.text);
+        drawLayer(1);
+      }
+
+      function frame() {
+        if (bouquetPage.classList.contains('active') || isTransitioning) {
+          // Pause canvas rendering during transition so GPU is 100% free with 0 lag
+          requestAnimationFrame(frame);
+          return;
+        }
+
+        const now = performance.now();
+        const dt = Math.min(64, now - (lastFlTime || now));
+        const k = 1 - Math.exp(-dt / 80);
+
+        Sd += (St - Sd) * k;
+        cx += (ctx_ - cx) * k; cy += (cty - cy) * k;
+        for (const l of letters) if (!l.dead && l.tx != null) { l.x += (l.tx - l.x) * k; l.y += (l.ty - l.y) * k; }
+        letters = letters.filter(l => !(l.dead && now - l.dead > 300));
+
+        g.setTransform(dpr, 0, 0, dpr, 0, 0);
+        g.fillStyle = C.bg;
+        g.fillRect(0, 0, W, H);
+
+        const B = backend(g);
+        render(B, now);
+        drawFlies(B, now);
+
+        updateConfetti();
+        requestAnimationFrame(frame);
+      }
+
+      // =============================================================
+      // CINEMATIC VIDEO TRANSITION WITH RADIANT FLASH SCREEN
+      // =============================================================
+      let transitionFallbackTimer = null;
+      let hasTriggeredFlash = false;
+
+      function triggerFlashAndRevealBouquet() {
+        if (hasTriggeredFlash) return;
+        hasTriggeredFlash = true;
+
+        if (transitionFallbackTimer) {
+          clearTimeout(transitionFallbackTimer);
+          transitionFallbackTimer = null;
+        }
+
+        // Phase 1: Peak Flash - Screen quickly bursts into pure radiant white
+        if (flashScreenOverlay) {
+          flashScreenOverlay.classList.remove('flash-fade');
+          flashScreenOverlay.classList.add('flash-peak');
+        }
+
+        // Phase 2: Underneath the dazzling flash, swap screens seamlessly
+        setTimeout(() => {
+          gardenView.classList.add('hidden-view');
+          bouquetPage.classList.add('active');
+          bouquetPage.scrollTop = 0;
+
+          // Phase 3: Dissolve flash smoothly to unveil the bouquet page
+          setTimeout(() => {
+            if (flashScreenOverlay) {
+              flashScreenOverlay.classList.remove('flash-peak');
+              flashScreenOverlay.classList.add('flash-fade');
+            }
+
+            if (videoTransitionLayer) {
+              videoTransitionLayer.classList.remove('active');
+            }
+            if (transitionVideo) {
+              transitionVideo.pause();
+            }
+
+            // Cleanup after flash fade animation completes
+            setTimeout(() => {
+              if (flashScreenOverlay) {
+                flashScreenOverlay.classList.remove('flash-fade');
+              }
+              isTransitioning = false;
+              hasTriggeredFlash = false;
+            }, 780);
+          }, 120);
+        }, 180);
+      }
+
+      function startVideoTransition() {
+        if (isTransitioning) return;
+        isTransitioning = true;
+        hasTriggeredFlash = false;
+
+        // Hide tap indicator
+        if (tapIndicator) tapIndicator.classList.add('hidden');
+
+        // Activate fullscreen video transition layer
+        if (videoTransitionLayer) videoTransitionLayer.classList.add('active');
+
+        if (transitionVideo) {
+          transitionVideo.currentTime = 0;
+          transitionVideo.muted = false;
+          transitionVideo.playbackRate = TRANSITION_PLAYBACK_SPEED;
+
+          const playPromise = transitionVideo.play();
+          if (playPromise !== undefined) {
+            playPromise.then(() => {
+              transitionVideo.playbackRate = TRANSITION_PLAYBACK_SPEED;
+            }).catch(err => {
+              // If browser requires user interaction for sound, fallback to muted play
+              console.warn('Audio play restricted, playing muted:', err);
+              transitionVideo.muted = true;
+              transitionVideo.play().then(() => {
+                transitionVideo.playbackRate = TRANSITION_PLAYBACK_SPEED;
+              }).catch(() => {});
+            });
+          }
+
+          // Safety fallback timer adjusted for higher playback speed
+          const rawDuration = (transitionVideo.duration && !isNaN(transitionVideo.duration)) ? transitionVideo.duration : 5.0;
+          const fallbackSecs = (rawDuration / TRANSITION_PLAYBACK_SPEED) + 0.8;
+          transitionFallbackTimer = setTimeout(() => {
+            if (isTransitioning && !hasTriggeredFlash) {
+              triggerFlashAndRevealBouquet();
+            }
+          }, fallbackSecs * 1000);
+        } else {
+          triggerFlashAndRevealBouquet();
+        }
+      }
+
+      // Backward-compatibility alias
+      function startFlowerTransition() {
+        startVideoTransition();
+      }
+
+      // Return back to Type Garden screen
+      function returnToGarden() {
+        bouquetPage.classList.remove('active');
+        gardenView.classList.remove('hidden-view');
+        if (tapIndicator) tapIndicator.classList.remove('hidden');
+        if (videoTransitionLayer) videoTransitionLayer.classList.remove('active');
+        if (flashScreenOverlay) {
+          flashScreenOverlay.classList.remove('flash-peak', 'flash-fade');
+        }
+        if (transitionVideo) {
+          transitionVideo.pause();
+          transitionVideo.currentTime = 0;
+        }
+        isTransitioning = false;
+        hasTriggeredFlash = false;
+      }
+
+      // =============================================================
+      // ROSE PETAL CONFETTI SYSTEM
+      // =============================================================
+      let confettiParticles = [];
+      function triggerPetalConfetti(originX, originY, amount = 70) {
+        const colors = ['#f43f5e', '#fda4af', '#fb7185', '#e11d48', '#ffe4e6', '#fbcfe8'];
+        for (let i = 0; i < amount; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = Math.random() * 14 + 4;
+          confettiParticles.push({
+            x: originX,
+            y: originY,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed - 5,
+            size: Math.random() * 9 + 6,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            rotation: Math.random() * Math.PI * 2,
+            vRot: (Math.random() - 0.5) * 0.2,
+            gravity: 0.28,
+            alpha: 1
+          });
+        }
+      }
+
+      function updateConfetti() {
+        if (!confettiParticles.length) return;
+        cg.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+        cg.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        confettiParticles = confettiParticles.filter(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += p.gravity;
+          p.vx *= 0.98;
+          p.rotation += p.vRot;
+          p.alpha -= 0.008;
+
+          if (p.alpha <= 0 || p.y > window.innerHeight + 50) return false;
+
+          cg.save();
+          cg.translate(p.x, p.y);
+          cg.rotate(p.rotation);
+          cg.globalAlpha = Math.max(0, p.alpha);
+          cg.fillStyle = p.color;
+
+          // Draw Soft Elliptical Petal
+          cg.beginPath();
+          cg.ellipse(0, 0, p.size, p.size * 0.58, 0, 0, Math.PI * 2);
+          cg.fill();
+          cg.restore();
+          return true;
+        });
+      }
+
+      // =============================================================
+      // WAX SEAL UNSEALING ANIMATION & VIEW TRANSITION LOGIC
+      // =============================================================
+      let isUnsealing = false;
+      let isLetterOpen = false;
+
+      function playWaxSealSound() {
+        try {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (!AudioCtx) return;
+          const ctx = new AudioCtx();
+          if (ctx.state === 'suspended') ctx.resume();
+
+          // 1. Tactile Wax Snap / Pop Impulse (Mechanical snap)
+          const snapOsc = ctx.createOscillator();
+          const snapGain = ctx.createGain();
+          snapOsc.type = 'triangle';
+          snapOsc.frequency.setValueAtTime(340, ctx.currentTime);
+          snapOsc.frequency.exponentialRampToValueAtTime(45, ctx.currentTime + 0.08);
+          snapGain.gain.setValueAtTime(0.3, ctx.currentTime);
+          snapGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.09);
+          snapOsc.connect(snapGain);
+          snapGain.connect(ctx.destination);
+          snapOsc.start(ctx.currentTime);
+          snapOsc.stop(ctx.currentTime + 0.1);
+
+          // 2. Soft Parchment / Paper Slide Rustle
+          const bufferSize = Math.floor(ctx.sampleRate * 0.28);
+          const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+          const output = noiseBuffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            output[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.09));
+          }
+          const whiteNoise = ctx.createBufferSource();
+          whiteNoise.buffer = noiseBuffer;
+          const filter = ctx.createBiquadFilter();
+          filter.type = 'bandpass';
+          filter.frequency.setValueAtTime(1600, ctx.currentTime);
+          filter.Q.value = 3;
+          const noiseGain = ctx.createGain();
+          noiseGain.gain.setValueAtTime(0.2, ctx.currentTime + 0.02);
+          noiseGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.28);
+          whiteNoise.connect(filter);
+          filter.connect(noiseGain);
+          noiseGain.connect(ctx.destination);
+          whiteNoise.start(ctx.currentTime + 0.02);
+
+          // 3. Romantic 6-Note Harp Chime Arpeggio (F5, A5, C6, E6, G6, C7)
+          const notes = [698.46, 880.0, 1046.5, 1318.51, 1567.98, 2093.0];
+          notes.forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            const startTime = ctx.currentTime + 0.12 + idx * 0.065;
+            osc.frequency.setValueAtTime(freq, startTime);
+            gain.gain.setValueAtTime(0, startTime);
+            gain.gain.linearRampToValueAtTime(0.18, startTime + 0.025);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.7);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(startTime);
+            osc.stop(startTime + 0.75);
+          });
+        } catch (e) {}
+      }
+
+      // =============================================================
+      // TUCKED RIBBON NOTE: 3D SLIDE-OUT & FOLD LOGIC
+      // =============================================================
+      function openTuckedNote() {
+        if (isLetterOpen) return;
+        isLetterOpen = true;
+
+        // Play paper rustle & sweet harp chime
+        playWaxSealSound();
+
+        // Burst rose petal confetti directly from the ribbon knot position
+        const ribbonEl = unsealLetterIndicator || bouquetStage;
+        const rect = ribbonEl ? ribbonEl.getBoundingClientRect() : { left: window.innerWidth / 2, top: window.innerHeight * 0.7, width: 0, height: 0 };
+        triggerPetalConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2, 70);
+
+        if (tuckedNoteOverlay) {
+          tuckedNoteOverlay.classList.remove('closing');
+          tuckedNoteOverlay.classList.add('active');
+        }
+      }
+
+      function closeTuckedNote() {
+        if (!isLetterOpen) return;
+        if (tuckedNoteOverlay) {
+          tuckedNoteOverlay.classList.add('closing');
+          setTimeout(() => {
+            tuckedNoteOverlay.classList.remove('active');
+            tuckedNoteOverlay.classList.remove('closing');
+            isLetterOpen = false;
+          }, 420);
+        } else {
+          isLetterOpen = false;
+        }
+      }
+
+      // Return / Collapse buttons on full letter scrapbook section (if active)
+      function returnToBouquetView() {
+        if (!isLetterOpen) return;
+
+        if (loveLetterSection) {
+          loveLetterSection.classList.add('collapsing');
+        }
+
+        setTimeout(() => {
+          isLetterOpen = false;
+
+          if (unsealLetterIndicator) unsealLetterIndicator.style.display = '';
+          if (loveLetterSection) {
+            loveLetterSection.classList.remove('active');
+            loveLetterSection.classList.remove('collapsing');
+          }
+          if (bouquetHeroSection) bouquetHeroSection.classList.remove('hidden-section');
+          if (bouquetPage) {
+            bouquetPage.classList.remove('letter-mode');
+            bouquetPage.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }, 400);
+      }
+
+      if (btnReturnBouquet) {
+        btnReturnBouquet.addEventListener('click', (e) => {
+          e.stopPropagation();
+          returnToBouquetView();
+        });
+      }
+      if (btnBottomCollapse) {
+        btnBottomCollapse.addEventListener('click', (e) => {
+          e.stopPropagation();
+          returnToBouquetView();
+        });
+      }
+
+      // Tucked Note Actions: Fold & Close
+      if (btnTuckedCollapse) {
+        btnTuckedCollapse.addEventListener('click', (e) => {
+          e.stopPropagation();
+          closeTuckedNote();
+        });
+      }
+      if (btnTuckedClose) {
+        btnTuckedClose.addEventListener('click', (e) => {
+          e.stopPropagation();
+          closeTuckedNote();
+        });
+      }
+
+      // Backdrop tap closes the note
+      if (tuckedNoteOverlay) {
+        tuckedNoteOverlay.addEventListener('click', (e) => {
+          if (e.target === tuckedNoteOverlay || e.target.classList.contains('tucked-backdrop')) {
+            closeTuckedNote();
+          }
+        });
+      }
+
+      // Tap on ribbon banner or tucked peek note to slide out & unfold
+      if (unsealLetterIndicator) {
+        unsealLetterIndicator.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openTuckedNote();
+        });
+      }
+      if (ribbonPeekNote) {
+        ribbonPeekNote.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openTuckedNote();
+        });
+      }
+      if (bouquetStage) {
+        bouquetStage.addEventListener('click', (e) => {
+          if (!isLetterOpen) {
+            e.stopPropagation();
+            openTuckedNote();
+          }
+        });
+      }
+
+      // Swiping up or scrolling down on bouquet triggers the note slide-out
+      let touchStartY = 0;
+      window.addEventListener('wheel', (e) => {
+        if (!isLetterOpen && bouquetPage.classList.contains('active')) {
+          if (e.deltaY > 15) {
+            openTuckedNote();
+          }
+        }
+      }, { passive: true });
+
+      window.addEventListener('touchstart', (e) => {
+        touchStartY = e.touches[0].clientY;
+      }, { passive: true });
+
+      window.addEventListener('touchend', (e) => {
+        if (!isLetterOpen && bouquetPage.classList.contains('active')) {
+          const deltaY = touchStartY - e.changedTouches[0].clientY;
+          if (deltaY > 40) {
+            openTuckedNote();
+          }
+        }
+      }, { passive: true });
+
+      // =============================================================
+      // TAP ON TYPE GARDEN SCREEN -> TRIGGER HEART BLOOM BLANKET TRANSITION
+      // =============================================================
+      function handleGardenTap() {
+        if (isTransitioning || bouquetPage.classList.contains('active')) return;
+        startFlowerTransition();
+      }
+
+      if (gardenView) {
+        gardenView.addEventListener('click', handleGardenTap);
+        gardenView.addEventListener('touchend', handleGardenTap, { passive: true });
+      }
+      if (cv) {
+        cv.addEventListener('click', handleGardenTap);
+        cv.addEventListener('touchend', handleGardenTap, { passive: true });
+      }
+      if (tapIndicator) {
+        tapIndicator.addEventListener('click', handleGardenTap);
+        tapIndicator.addEventListener('touchend', handleGardenTap, { passive: true });
+      }
+
+      // Transition Video Listeners: Radiant flash at climax and ended
+      if (transitionVideo) {
+        transitionVideo.defaultPlaybackRate = TRANSITION_PLAYBACK_SPEED;
+        transitionVideo.playbackRate = TRANSITION_PLAYBACK_SPEED;
+
+        transitionVideo.addEventListener('loadedmetadata', () => {
+          transitionVideo.playbackRate = TRANSITION_PLAYBACK_SPEED;
+        });
+
+        transitionVideo.addEventListener('play', () => {
+          transitionVideo.playbackRate = TRANSITION_PLAYBACK_SPEED;
+        });
+
+        transitionVideo.addEventListener('timeupdate', () => {
+          if (!hasTriggeredFlash && transitionVideo.duration > 0) {
+            const leadTime = 0.18 * TRANSITION_PLAYBACK_SPEED;
+            if (transitionVideo.currentTime >= transitionVideo.duration - leadTime) {
+              triggerFlashAndRevealBouquet();
+            }
+          }
+        });
+
+        transitionVideo.addEventListener('ended', () => {
+          if (!hasTriggeredFlash) {
+            triggerFlashAndRevealBouquet();
+          }
+        });
+
+        transitionVideo.addEventListener('error', () => {
+          if (!hasTriggeredFlash) {
+            triggerFlashAndRevealBouquet();
+          }
+        });
+      }
+
+
+      // Pointer moves for butterflies & flowers
+      window.addEventListener('pointermove', e => {
+        mx = e.clientX;
+        my = e.clientY;
+      });
+
+      // Bootstrap Engine with "My Love"
+      function init() {
+        resize();
+        window.addEventListener('resize', resize);
+
+        const now = performance.now();
+        for (const ch of TARGET_TEXT) {
+          addLetter(ch, now);
+        }
+
+        if (document.fonts) {
+          document.fonts.load(`700 100px ${F}`).then(() => {
+            cache = {};
+            layout(true);
+          }).catch(() => {});
+        }
+
+        setTimeout(() => {
+          spawnFly(W / 2, H / 2);
+        }, 800);
+
+        requestAnimationFrame(frame);
+      }
+
+      window.addEventListener('DOMContentLoaded', init);
+    })();
+  </script>
+</body>
+</html>
