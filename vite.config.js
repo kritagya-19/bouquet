@@ -15,6 +15,16 @@ export default defineConfig({
         main: resolve(import.meta.dirname, 'index.html'),
         garden: resolve(import.meta.dirname, 'garden.html'),
       },
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+            return 'react-vendor'
+          }
+          if (id.includes('node_modules/framer-motion')) {
+            return 'motion-vendor'
+          }
+        },
+      },
     },
   },
 })

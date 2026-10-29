@@ -12,15 +12,18 @@ import {
   Copy,
   RotateCcw,
   Play,
+  Pause,
   Shuffle,
   ExternalLink,
   Eye,
   Send,
-  MessageCircle
+  MessageCircle,
+  Music
 } from 'lucide-react'
 import confetti from 'canvas-confetti'
 import CreatedBouquet from './components/CreatedBouquet'
 import ScallopCard from './components/ScallopCard'
+import { ROMANTIC_MELODIES, romanticAudio } from './utils/romanticAudio'
 
 const MAX_FLOWERS = 6
 
@@ -33,7 +36,7 @@ const PRESET_BOUQUETS = [
     tagline: 'Deep velvet crimson roses tied with delicate dusty blush ribbon',
     meaning: 'Eternal passion, devotion & deepest love',
     flowers: ['Crimson Roses', 'Forest Ferns', 'Blush Silk Bow'],
-    image: '/bouquet/rosebouquet.png',
+    image: '/bouquet/rosebouquet.webp',
     glowColor: 'from-rose-400/30 to-red-300/10',
     badgeColor: 'bg-rose-100 text-rose-800 border-rose-200',
     accentEmoji: '🌹'
@@ -45,7 +48,7 @@ const PRESET_BOUQUETS = [
     tagline: 'Fresh pastel pink and coral tulips tied with artisan peach silk ribbon',
     meaning: 'Playful affection, charm & pure sweetness',
     flowers: ['Pastel Tulips', 'Coral Blooms', 'Peach Silk Ribbon'],
-    image: '/bouquet/tulipbouquet.png',
+    image: '/bouquet/tulipbouquet.webp',
     glowColor: 'from-pink-400/30 to-rose-200/10',
     badgeColor: 'bg-pink-100 text-pink-800 border-pink-200',
     accentEmoji: '🌷'
@@ -57,7 +60,7 @@ const PRESET_BOUQUETS = [
     tagline: 'Sweet fragrant lilies symbolizing sincere devotion and lifelong love',
     meaning: 'Purity, divine grace & heartfelt loyalty',
     flowers: ['Stargazer Lilies', 'White Petals', 'Satin Wrap'],
-    image: '/bouquet/lilybouquet.png',
+    image: '/bouquet/lilybouquet.webp',
     glowColor: 'from-fuchsia-300/30 to-pink-200/10',
     badgeColor: 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200',
     accentEmoji: '🌸'
@@ -69,21 +72,21 @@ const PRESET_BOUQUETS = [
     tagline: 'Lush golden sunburst blooms with rustic botanical accents and organic wrap',
     meaning: 'Bright smiles, warmth & unconditional joy',
     flowers: ['Golden Blooms', 'Wild Bluebells', 'Artisan Twine'],
-    image: '/bouquet/sunbouquet.png',
+    image: '/bouquet/sunbouquet.webp',
     glowColor: 'from-amber-300/35 to-yellow-200/10',
     badgeColor: 'bg-amber-100 text-amber-800 border-amber-200',
     accentEmoji: '☀️'
   }
 ]
 
-// The 5 Single Flowers from the public/flower folder
+// The 4 Single Flowers from the public/flower folder
 const CUSTOM_STEMS = [
   {
     id: 'flower-tulip',
     name: 'Blush Dutch Tulip',
     category: 'Gentle Grace',
     meaning: 'Caring affection, charm & pure romance',
-    image: '/flower/tulip.png',
+    image: '/flower/tulip.webp',
     color: '#fb7185',
     emoji: '🌷'
   },
@@ -92,7 +95,7 @@ const CUSTOM_STEMS = [
     name: 'Pure Stargazer Lily',
     category: 'Divine Elegance',
     meaning: 'Purity, devotion & sincere grace',
-    image: '/flower/lily.png',
+    image: '/flower/lily.webp',
     color: '#f472b6',
     emoji: '🌸'
   },
@@ -101,7 +104,7 @@ const CUSTOM_STEMS = [
     name: 'Velvet Crimson Rose',
     category: 'Romantic Classic',
     meaning: 'Deep passion & eternal love',
-    image: '/flower/rose.png',
+    image: '/flower/rose.webp',
     color: '#e11d48',
     emoji: '🌹'
   },
@@ -110,18 +113,9 @@ const CUSTOM_STEMS = [
     name: 'Moonlight White Rose',
     category: 'Pure Devotion',
     meaning: 'True innocence, eternal loyalty & pure love',
-    image: '/flower/whiterose.png',
+    image: '/flower/whiterose.webp',
     color: '#f8fafc',
     emoji: '🤍'
-  },
-  {
-    id: 'flower-sunflower',
-    name: 'Golden Sunlight Bloom',
-    category: 'Joyful Radiance',
-    meaning: 'Bright warmth, adoration & unconditional joy',
-    image: '/flower/sunflower.png',
-    color: '#f59e0b',
-    emoji: '🌻'
   }
 ]
 
@@ -132,7 +126,7 @@ const WRAPPING_STYLES = [
     name: 'Signature Blush Silk Wrap',
     tagline: 'Flared blush origami folds, delicate eucalyptus & pink silk bow',
     badge: 'Blush Origami',
-    image: '/pink-wrapper.png',
+    image: '/pink-wrapper.webp',
     theme: 'rose',
     accentColor: '#841b2d',
     border: '#f43f5e'
@@ -142,7 +136,7 @@ const WRAPPING_STYLES = [
     name: 'Vintage White & Newsprint Wrap',
     tagline: 'Vintage print parchment, crisp white pleated wings & olive silk ribbon',
     badge: 'Vintage Newsprint',
-    image: '/white_wrapper.png',
+    image: '/white_wrapper.webp',
     theme: 'emerald',
     accentColor: '#166534',
     border: '#059669'
@@ -156,7 +150,7 @@ const REEL_CARDS = [
     title: 'Surprising Her on Our Anniversary',
     subtitle: 'Her tearful smile when she opened the door to red roses',
     link: 'https://www.instagram.com/reels/',
-    cover: '/bouquet/rosebouquet.png',
+    cover: '/bouquet/rosebouquet.webp',
     tag: 'Anniversary Surprise'
   },
   {
@@ -164,7 +158,7 @@ const REEL_CARDS = [
     title: 'Morning Delivery Reaction',
     subtitle: 'Waking up to fresh Dutch pastel tulips and a handwritten letter',
     link: 'https://www.instagram.com/reels/',
-    cover: '/bouquet/tulipbouquet.png',
+    cover: '/bouquet/tulipbouquet.webp',
     tag: 'Sweet Moments'
   },
   {
@@ -172,7 +166,7 @@ const REEL_CARDS = [
     title: 'Moonlight White Rose Date Night',
     subtitle: 'Her eyes lit up when she saw the pure white roses and handwritten letter',
     link: 'https://www.instagram.com/reels/',
-    cover: '/flower/whiterose.png',
+    cover: '/flower/whiterose.webp',
     tag: 'Date Night'
   },
   {
@@ -180,7 +174,7 @@ const REEL_CARDS = [
     title: 'Opening The Silk Love Letter',
     subtitle: 'She read every heartfelt word with tears of joy',
     link: 'https://www.instagram.com/reels/',
-    cover: '/bouquet/lilybouquet.png',
+    cover: '/bouquet/lilybouquet.webp',
     tag: 'Love Letter'
   }
 ]
@@ -204,26 +198,94 @@ const LOVE_NOTE_PROMPTS = [
   }
 ]
 
+// Helper: resize & compress uploaded polaroid image to a lightweight thumbnail (~2KB)
+function compressPolaroidImage(file, callback) {
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      const targetW = 150
+      const targetH = 165
+      canvas.width = targetW
+      canvas.height = targetH
+      const ctx = canvas.getContext('2d')
+      if (!ctx) {
+        callback(e.target.result)
+        return
+      }
+
+      // Center-crop (cover) to preserve natural portrait framing
+      const srcW = img.width
+      const srcH = img.height
+      const targetRatio = targetW / targetH
+      const srcRatio = srcW / srcH
+
+      let renderW, renderH, offsetX, offsetY
+      if (srcRatio > targetRatio) {
+        renderH = srcH
+        renderW = srcH * targetRatio
+        offsetX = (srcW - renderW) / 2
+        offsetY = 0
+      } else {
+        renderW = srcW
+        renderH = srcW / targetRatio
+        offsetX = 0
+        offsetY = (srcH - renderH) / 2
+      }
+
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(0, 0, targetW, targetH)
+      ctx.drawImage(img, offsetX, offsetY, renderW, renderH, 0, 0, targetW, targetH)
+
+      let dataUrl = ''
+      try {
+        dataUrl = canvas.toDataURL('image/webp', 0.55)
+        if (!dataUrl.startsWith('data:image/webp')) {
+          dataUrl = canvas.toDataURL('image/jpeg', 0.55)
+        }
+      } catch {
+        dataUrl = canvas.toDataURL('image/jpeg', 0.55)
+      }
+      callback(dataUrl)
+    }
+    img.onerror = () => callback(e.target.result)
+    img.src = e.target.result
+  }
+  reader.onerror = () => {}
+  reader.readAsDataURL(file)
+}
+
 // Parse URL query parameters for gift link delivery
 function getInitialGiftData() {
   if (typeof window === 'undefined') return null
   const params = new URLSearchParams(window.location.search)
+  let photo = params.get('photo') || params.get('img') || params.get('pic')
+  if (!photo && window.location.hash) {
+    try {
+      const hashMatch = window.location.hash.match(/[#&]photo=([^&]+)/)
+      if (hashMatch && hashMatch[1]) {
+        photo = decodeURIComponent(hashMatch[1])
+      }
+    } catch {}
+  }
   const to = params.get('to')
   const note = params.get('note')
-  if (!to && !note) return null
+  if (!to && !note && !photo) return null
   const from = params.get('from')
   const wrap = params.get('wrap')
+  const preset = params.get('preset')
+  const music = params.get('music')
   const stemsParam = params.get('stems')
   let parsedStems = null
   if (stemsParam) {
     try {
       const p = JSON.parse(decodeURIComponent(stemsParam))
       if (Array.isArray(p)) parsedStems = p
-    } catch {
-      // ignore
-    }
+    } catch {}
   }
-  return { to, from, note, wrap, stems: parsedStems }
+  return { to, from, note, wrap, preset, music, photo, stems: parsedStems }
 }
 
 const initialGiftData = getInitialGiftData()
@@ -243,7 +305,15 @@ export default function App() {
   const [flowStep, setFlowStep] = useState(initialGiftData ? 'recipient-view' : 'choice')
 
   // Selected preset bouquet if chosen from gallery
-  const [selectedPreset, setSelectedPreset] = useState(null)
+  const [selectedPreset, setSelectedPreset] = useState(() => {
+    if (initialGiftData?.preset && initialGiftData.preset !== 'custom') {
+      const match = PRESET_BOUQUETS.find(
+        (p) => p.id === `preset-${initialGiftData.preset}` || p.id === initialGiftData.preset
+      )
+      return match || null
+    }
+    return null
+  })
 
   // Custom Builder Stems: Default initialized to exactly 6 flowers or from URL
   const [customStems, setCustomStems] = useState(() => {
@@ -254,10 +324,10 @@ export default function App() {
       })
     }
     return [
-      { id: 'flower-tulip', name: 'Blush Dutch Tulip', count: 2, image: '/flower/tulip.png', emoji: '🌷', color: '#fb7185' },
-      { id: 'flower-lily', name: 'Pure Stargazer Lily', count: 2, image: '/flower/lily.png', emoji: '🌸', color: '#f472b6' },
-      { id: 'flower-rose', name: 'Velvet Crimson Rose', count: 1, image: '/flower/rose.png', emoji: '🌹', color: '#e11d48' },
-      { id: 'flower-whiterose', name: 'Moonlight White Rose', count: 1, image: '/flower/whiterose.png', emoji: '🤍', color: '#f8fafc' }
+      { id: 'flower-tulip', name: 'Blush Dutch Tulip', count: 2, image: '/flower/tulip.webp', emoji: '🌷', color: '#fb7185' },
+      { id: 'flower-lily', name: 'Pure Stargazer Lily', count: 2, image: '/flower/lily.webp', emoji: '🌸', color: '#f472b6' },
+      { id: 'flower-rose', name: 'Velvet Crimson Rose', count: 1, image: '/flower/rose.webp', emoji: '🌹', color: '#e11d48' },
+      { id: 'flower-whiterose', name: 'Moonlight White Rose', count: 1, image: '/flower/whiterose.webp', emoji: '🤍', color: '#f8fafc' }
     ]
   })
 
@@ -286,45 +356,58 @@ export default function App() {
     }
     return "Just a quick love letter because you've been living in my head rent-free since day one. You're my safe space, my biggest flex, and my favorite person all in one. I'm honestly so obsessed with everything about you. Thank you for being mine and for making everything feel so easy. You're a literal 10/10 and I'm never letting go."
   })
+  // Single Memory Photo (Polaroid) for the Love Letter
   const [polaroidPhoto, setPolaroidPhoto] = useState(() => {
-    if (typeof window !== 'undefined') {
+    if (initialGiftData?.photo) {
+      try { localStorage.setItem('bouquet_custom_polaroid', initialGiftData.photo) } catch {}
+      return initialGiftData.photo
+    }
+    // Only restore previous local upload if we are NOT viewing someone else's gift link
+    if (typeof window !== 'undefined' && !initialGiftData) {
       return localStorage.getItem('bouquet_custom_polaroid') || null
     }
     return null
   })
-  const [stampPhoto, setStampPhoto] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('bouquet_custom_stamp') || null
-    }
-    return null
-  })
 
-  const handlePhotoUpload = (e, type) => {
+  const handlePhotoUpload = (e) => {
     const file = e.target.files && e.target.files[0]
     if (!file) return
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      const dataUrl = ev.target.result
-      if (type === 'polaroid') {
-        setPolaroidPhoto(dataUrl)
-        try { localStorage.setItem('bouquet_custom_polaroid', dataUrl) } catch (err) {}
-      } else {
-        setStampPhoto(dataUrl)
-        try { localStorage.setItem('bouquet_custom_stamp', dataUrl) } catch (err) {}
-      }
-    }
-    reader.readAsDataURL(file)
+    compressPolaroidImage(file, (dataUrl) => {
+      setPolaroidPhoto(dataUrl)
+      try { localStorage.setItem('bouquet_custom_polaroid', dataUrl) } catch {}
+    })
   }
 
-  const handleRemovePhoto = (type) => {
-    if (type === 'polaroid') {
-      setPolaroidPhoto(null)
-      try { localStorage.removeItem('bouquet_custom_polaroid') } catch (err) {}
+  const handleRemovePhoto = () => {
+    setPolaroidPhoto(null)
+    try { localStorage.removeItem('bouquet_custom_polaroid') } catch {}
+  }
+
+  // Background Romantic Melody Selection
+  const [selectedMusic, setSelectedMusic] = useState(initialGiftData?.music || 'piano')
+  const [previewPlayingMelody, setPreviewPlayingMelody] = useState(null)
+
+  const handleToggleMusicPreview = (melodyId) => {
+    if (previewPlayingMelody === melodyId) {
+      romanticAudio.stop()
+      setPreviewPlayingMelody(null)
     } else {
-      setStampPhoto(null)
-      try { localStorage.removeItem('bouquet_custom_stamp') } catch (err) {}
+      if (melodyId === 'none') {
+        romanticAudio.stop()
+        setPreviewPlayingMelody(null)
+      } else {
+        romanticAudio.playMelody(melodyId)
+        setPreviewPlayingMelody(melodyId)
+      }
     }
   }
+
+  // Stop preview music when switching views or unmounting
+  useEffect(() => {
+    return () => {
+      romanticAudio.stop()
+    }
+  }, [])
 
   const [isPreviewMode, setIsPreviewMode] = useState(false)
   const [recipientTab, setRecipientTab] = useState('garden') // 'garden' or 'bouquet'
@@ -436,11 +519,13 @@ export default function App() {
 
   // Confirm Note & proceed to Share Options page
   const handleConfirmNote = () => {
+    romanticAudio.stop()
+    setPreviewPlayingMelody(null)
     try {
       localStorage.setItem('bouquet_recipient_name', recipientName || 'Kenes')
       localStorage.setItem('bouquet_sender_name', senderName || 'Radleigh')
       localStorage.setItem('bouquet_love_note', loveNote)
-    } catch (err) {}
+    } catch {}
     confetti({
       particleCount: 90,
       spread: 75,
@@ -458,6 +543,7 @@ export default function App() {
     params.set('from', senderName || 'Radleigh')
     params.set('note', loveNote)
     params.set('wrap', selectedWrapId)
+    params.set('music', selectedMusic || 'piano')
 
     if (selectedPreset) {
       // Signature Masterpiece Bouquet chosen from Gallery
@@ -486,6 +572,11 @@ export default function App() {
         }
       }
     }
+
+    if (polaroidPhoto) {
+      params.set('photo', polaroidPhoto)
+    }
+
     return `${window.location.origin}/garden.html?${params.toString()}`
   }
 
@@ -547,13 +638,15 @@ export default function App() {
       {/* ============================================================== */}
       <section
         className="relative z-10 w-full min-h-screen flex flex-col justify-between overflow-hidden bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/pinkstrip-bg.png')" }}
+        style={{ backgroundImage: "url('/pinkstrip-bg.webp')" }}
       >
-        {/* Centered Hero Flowers from public/hero-flower.png placed directly above pinkstripe background */}
+        {/* Centered Hero Flowers from public/hero-flower.webp placed directly above pinkstripe background */}
         <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none overflow-hidden">
           <img
-            src="/hero-flower.png"
+            src="/hero-flower.webp"
             alt="Hero Floral Centerpiece"
+            decoding="async"
+            fetchpriority="high"
             className="w-full h-full object-contain object-center scale-100 md:scale-105 pointer-events-none select-none transition-transform duration-1000"
           />
         </div>
@@ -629,7 +722,7 @@ export default function App() {
       {/* ============================================================== */}
       <section
         className="relative z-10 py-24 px-6 md:px-14 lg:px-20 bg-cover bg-center bg-no-repeat border-t border-rose-200/50"
-        style={{ backgroundImage: "url('/pinkstrip-bg.png')" }}
+        style={{ backgroundImage: "url('/pinkstrip-bg.webp')" }}
       >
         <div className="max-w-6xl mx-auto">
           {/* Header */}
@@ -1457,6 +1550,7 @@ export default function App() {
                           stroke="#fbcfe8"
                           strokeWidth={1.8}
                           targetR={15}
+                          padding="20px 14px 20px 14px"
                           badgeContent={
                             <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 p-1 shadow-md border-2 border-white flex flex-col items-center justify-center text-white">
                               <span className="text-xs">💐</span>
@@ -1466,7 +1560,7 @@ export default function App() {
                           className="h-full flex flex-col items-center justify-between text-center sticky top-20"
                         >
                           {/* Text to mention live preview */}
-                          <div className="pt-2 sm:pt-3">
+                          <div className="pt-1 sm:pt-2">
                             <div className="mb-2">
                               <span className="inline-block bg-[#fed7e2] text-[#9f1239] font-bold text-[10px] sm:text-[11px] tracking-[0.25em] px-4 py-1.5 rounded-sm uppercase shadow-2xs">
                                 LIVE BOUQUET PREVIEW
@@ -1477,8 +1571,8 @@ export default function App() {
                             </h4>
                           </div>
 
-                          {/* Bouquet Display (fills matching card height) */}
-                          <div className="flex-1 w-full flex items-center justify-center py-2 sm:py-3 min-h-[360px] sm:min-h-[420px]">
+                          {/* Bouquet Display (fills matching card height with generous size) */}
+                          <div className="flex-1 w-full flex items-center justify-center py-2 min-h-[460px] sm:min-h-[540px] lg:min-h-[600px]">
                             <CreatedBouquet
                               flowers={flattenedFlowers}
                               wrapStyle={selectedWrap}
@@ -1612,7 +1706,7 @@ export default function App() {
                                 onChange={(e) => {
                                   const val = e.target.value
                                   setRecipientName(val)
-                                  try { localStorage.setItem('bouquet_recipient_name', val) } catch (err) {}
+                                  try { localStorage.setItem('bouquet_recipient_name', val) } catch {}
                                 }}
                                 placeholder="e.g. My Sweetheart, Kenes"
                                 className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-rose-200 bg-[#fffbfc] focus:outline-none focus:ring-2 focus:ring-[#841b2d]/20 text-[#3a141b] font-medium"
@@ -1630,7 +1724,7 @@ export default function App() {
                                 onChange={(e) => {
                                   const val = e.target.value
                                   setSenderName(val)
-                                  try { localStorage.setItem('bouquet_sender_name', val) } catch (err) {}
+                                  try { localStorage.setItem('bouquet_sender_name', val) } catch {}
                                 }}
                                 placeholder="e.g. Yours Forever, Radleigh"
                                 className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-rose-200 bg-[#fffbfc] focus:outline-none focus:ring-2 focus:ring-[#841b2d]/20 text-[#3a141b] font-medium"
@@ -1651,7 +1745,7 @@ export default function App() {
                                 onChange={(e) => {
                                   const val = e.target.value
                                   setLoveNote(val)
-                                  try { localStorage.setItem('bouquet_love_note', val) } catch (err) {}
+                                  try { localStorage.setItem('bouquet_love_note', val) } catch {}
                                 }}
                                 placeholder="Pour your heart out to her..."
                                 className="w-full text-xs p-3.5 rounded-xl border border-rose-200 bg-[#fffbfc] focus:outline-none focus:ring-2 focus:ring-[#841b2d]/20 text-[#3a141b] leading-relaxed font-serif"
@@ -1666,7 +1760,7 @@ export default function App() {
                                     type="button"
                                     onClick={() => {
                                       setLoveNote(prompt.text)
-                                      try { localStorage.setItem('bouquet_love_note', prompt.text) } catch (err) {}
+                                      try { localStorage.setItem('bouquet_love_note', prompt.text) } catch {}
                                     }}
                                     className="text-[10px] px-2.5 py-0.5 rounded-full bg-rose-100/70 hover:bg-[#841b2d] hover:text-white text-[#841b2d] font-semibold transition-colors cursor-pointer"
                                   >
@@ -1676,101 +1770,129 @@ export default function App() {
                               </div>
                             </div>
 
-                            {/* Add Scrapbook Photos (Polaroid & Stamp) */}
+                            {/* 1. Add Couple Memory Photo (Single Polaroid) */}
                             <div className="pt-2 border-t border-rose-200/60">
                               <div className="flex items-center justify-between mb-2">
                                 <label className="block text-[11px] uppercase tracking-wider font-bold text-[#841b2d] font-serif-display">
-                                  Personalize Scrapbook Photos
+                                  Attach Memory Photo 📸
                                 </label>
-                                <span className="text-[10px] text-pink-700 italic">Displayed on her love letter</span>
+                                <span className="text-[10px] text-pink-700 italic">Displayed on her love letter polaroid</span>
                               </div>
 
-                              <div className="grid grid-cols-2 gap-3.5">
-                                {/* 1. Polaroid Photo Upload */}
-                                <div className="flex flex-col items-center p-3 rounded-xl border border-rose-200/80 bg-[#fffbfc] hover:border-[#841b2d] transition-all relative">
-                                  <span className="text-[10.5px] font-bold text-[#841b2d] mb-1.5 flex items-center gap-1">
-                                    <span>📸</span> Polaroid Couple Photo
-                                  </span>
-                                  <div className="relative w-20 h-24 rounded-lg overflow-hidden border border-rose-200/90 shadow-2xs group bg-rose-50 flex items-center justify-center">
-                                    <img
-                                      src={polaroidPhoto || '/letter-assets/photo_polaroid.png'}
-                                      alt="Polaroid preview"
-                                      className="w-full h-full object-cover"
+                              <div className="flex items-center gap-4 p-3 rounded-xl border border-rose-200/80 bg-[#fffbfc] hover:border-[#841b2d] transition-all">
+                                <div className="relative w-18 h-22 rounded-lg overflow-hidden border border-rose-200/90 shadow-2xs group bg-rose-50 flex-shrink-0 flex items-center justify-center">
+                                  <img
+                                    src={polaroidPhoto || '/letter-assets/photo_polaroid.webp'}
+                                    alt="Polaroid preview"
+                                    decoding="async"
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <label className="absolute inset-0 bg-black/60 text-white text-[10px] font-bold opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity cursor-pointer text-center p-1">
+                                    <span>{polaroidPhoto ? 'Change' : 'Upload'}</span>
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      onChange={handlePhotoUpload}
+                                      className="hidden"
                                     />
-                                    <label className="absolute inset-0 bg-black/60 text-white text-[10px] font-bold opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity cursor-pointer text-center p-1">
-                                      <span>{polaroidPhoto ? 'Change' : 'Upload'}</span>
+                                  </label>
+                                </div>
+                                <div className="flex-1 space-y-1.5">
+                                  <div className="flex items-center gap-2">
+                                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-100/80 hover:bg-[#841b2d] hover:text-white text-[#841b2d] text-[11px] font-bold cursor-pointer transition-colors shadow-2xs">
+                                      <span>📸</span>
+                                      <span>{polaroidPhoto ? 'Change Photo' : 'Upload Couple Photo'}</span>
                                       <input
                                         type="file"
                                         accept="image/*"
-                                        onChange={(e) => handlePhotoUpload(e, 'polaroid')}
-                                        className="hidden"
-                                      />
-                                    </label>
-                                  </div>
-                                  <div className="flex items-center gap-2 mt-2">
-                                    <label className="text-[10px] text-[#841b2d] font-bold cursor-pointer hover:underline">
-                                      {polaroidPhoto ? 'Change Photo' : '+ Upload Your Photo'}
-                                      <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={(e) => handlePhotoUpload(e, 'polaroid')}
+                                        onChange={handlePhotoUpload}
                                         className="hidden"
                                       />
                                     </label>
                                     {polaroidPhoto && (
                                       <button
                                         type="button"
-                                        onClick={() => handleRemovePhoto('polaroid')}
-                                        className="text-[9px] text-[#841b2d]/60 hover:text-rose-800 cursor-pointer"
+                                        onClick={handleRemovePhoto}
+                                        className="text-[10px] text-[#841b2d]/60 hover:text-rose-800 underline cursor-pointer"
                                       >
-                                        Reset
+                                        Reset to Default
                                       </button>
                                     )}
                                   </div>
+                                  <p className="text-[10px] text-stone-500 leading-tight">
+                                    {polaroidPhoto
+                                      ? 'Custom memory photo attached to her polaroid.'
+                                      : 'Using the romantic vintage memory illustration by default.'}
+                                  </p>
                                 </div>
+                              </div>
+                            </div>
 
-                                {/* 2. Stamp Photo Upload */}
-                                <div className="flex flex-col items-center p-3 rounded-xl border border-rose-200/80 bg-[#fffbfc] hover:border-[#841b2d] transition-all relative">
-                                  <span className="text-[10.5px] font-bold text-[#841b2d] mb-1.5 flex items-center gap-1">
-                                    <span>🎀</span> Mini Stamp Photo
-                                  </span>
-                                  <div className="relative w-20 h-20 rounded-lg overflow-hidden border border-rose-200/90 shadow-2xs group bg-rose-50 flex items-center justify-center">
-                                    <img
-                                      src={stampPhoto || '/letter-assets/photo_mini.png'}
-                                      alt="Stamp preview"
-                                      className="w-full h-full object-cover"
-                                    />
-                                    <label className="absolute inset-0 bg-black/60 text-white text-[10px] font-bold opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity cursor-pointer text-center p-1">
-                                      <span>{stampPhoto ? 'Change' : 'Upload'}</span>
-                                      <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={(e) => handlePhotoUpload(e, 'stamp')}
-                                        className="hidden"
-                                      />
-                                    </label>
-                                  </div>
-                                  <div className="flex items-center gap-2 mt-2">
-                                    <label className="text-[10px] text-[#841b2d] font-bold cursor-pointer hover:underline">
-                                      {stampPhoto ? 'Change Photo' : '+ Upload Your Photo'}
-                                      <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={(e) => handlePhotoUpload(e, 'stamp')}
-                                        className="hidden"
-                                      />
-                                    </label>
-                                    {stampPhoto && (
-                                      <button
-                                        type="button"
-                                        onClick={() => handleRemovePhoto('stamp')}
-                                        className="text-[9px] text-[#841b2d]/60 hover:text-rose-800 cursor-pointer"
-                                      >
-                                        Reset
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
+                            {/* 2. Romantic Background Music Selection */}
+                            <div className="pt-2 border-t border-rose-200/60">
+                              <div className="flex items-center justify-between mb-2">
+                                <label className="block text-[11px] uppercase tracking-wider font-bold text-[#841b2d] font-serif-display flex items-center gap-1.5">
+                                  <Music className="w-3.5 h-3.5 text-[#841b2d]" />
+                                  <span>Romantic Background Music 🎶</span>
+                                </label>
+                                <span className="text-[10px] text-pink-700 italic">Plays softly when she unseals letter</span>
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {ROMANTIC_MELODIES.map((melody) => {
+                                  const isSelected = selectedMusic === melody.id
+                                  const isPlaying = previewPlayingMelody === melody.id
+
+                                  return (
+                                    <div
+                                      key={melody.id}
+                                      onClick={() => setSelectedMusic(melody.id)}
+                                      className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-2 ${
+                                        isSelected
+                                          ? 'border-[#841b2d] bg-rose-50/70 shadow-xs ring-1 ring-[#841b2d]/30'
+                                          : 'border-rose-200/60 bg-white hover:border-rose-300'
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-2 min-w-0">
+                                        <span className="text-base flex-shrink-0">{melody.emoji}</span>
+                                        <div className="min-w-0">
+                                          <div className="flex items-center gap-1.5">
+                                            <span className="text-[11px] font-bold text-[#841b2d] truncate">
+                                              {melody.name}
+                                            </span>
+                                            {isSelected && (
+                                              <span className="w-1.5 h-1.5 rounded-full bg-[#841b2d] flex-shrink-0" />
+                                            )}
+                                          </div>
+                                          <p className="text-[9.5px] text-stone-500 truncate">{melody.tagline}</p>
+                                        </div>
+                                      </div>
+
+                                      {/* Listen Preview Button */}
+                                      {melody.id !== 'none' && (
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            handleToggleMusicPreview(melody.id)
+                                          }}
+                                          title={isPlaying ? 'Pause preview' : 'Listen to preview'}
+                                          className={`p-1.5 rounded-full text-[10px] font-bold flex items-center justify-center transition-all cursor-pointer flex-shrink-0 ${
+                                            isPlaying
+                                              ? 'bg-[#841b2d] text-white shadow-xs'
+                                              : 'bg-rose-100/80 text-[#841b2d] hover:bg-rose-200'
+                                          }`}
+                                        >
+                                          {isPlaying ? (
+                                            <Pause className="w-3 h-3 fill-current" />
+                                          ) : (
+                                            <Play className="w-3 h-3 fill-current ml-0.5" />
+                                          )}
+                                        </button>
+                                      )}
+                                    </div>
+                                  )
+                                })}
                               </div>
                             </div>
 
@@ -2066,6 +2188,18 @@ export default function App() {
                       <div className="space-y-10 pt-4 relative">
                         {/* Bouquet Hero Presentation (Grand Size) */}
                         <div id="recipient-bouquet-stage" className="py-6 flex flex-col items-center justify-center relative min-h-[88vh]">
+                          {/* Heading from attached image */}
+                          <motion.h2
+                            initial={{ opacity: 0, y: -14 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6 }}
+                            className="font-cute-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-[#722834] text-center mb-3 sm:mb-6 tracking-wide select-none drop-shadow-2xs relative z-10 px-4"
+                            style={{ fontFamily: "'Patrick Hand', cursive, sans-serif" }}
+                          >
+                            A beautiful bouquet for a beautiful person{' '}
+                            <span className="text-[#841b2d] inline-block ml-1">♥</span>
+                          </motion.h2>
+
                           <div className="absolute w-[620px] sm:w-[920px] h-[620px] sm:h-[920px] rounded-full bg-gradient-to-tr from-rose-300/40 via-pink-200/30 to-transparent blur-3xl pointer-events-none animate-pulse" />
                           {selectedPreset ? (
                             <div className="w-full max-w-[1050px] flex items-center justify-center relative z-10">
@@ -2094,7 +2228,7 @@ export default function App() {
                               document.getElementById('recipient-love-letter')?.scrollIntoView({ behavior: 'smooth' })
                             }}
                             className="relative -mt-32 sm:-mt-44 z-20 cursor-pointer flex flex-col items-center group transition-transform duration-300 hover:scale-105 active:scale-95"
-                            title="Tap to discover a romantic surprise"
+                            title="Tap to discover a surprise"
                           >
                             <div className="relative flex items-center justify-center">
                               {/* Left Doodles */}
@@ -2118,7 +2252,7 @@ export default function App() {
                               </div>
                             </div>
                             <p className="mt-2.5 text-sm sm:text-base font-serif italic text-[#843f4a] font-medium tracking-wide">
-                              to discover a romantic surprise ✨
+                              to discover a surprise ✨
                             </p>
                           </button>
                         </div>
@@ -2157,9 +2291,24 @@ export default function App() {
                                 <span className="text-xs">💌</span>
                               </div>
 
-                              <p className="font-serif italic text-sm sm:text-base text-[#3a141b] leading-relaxed py-2 whitespace-pre-wrap">
-                                &ldquo;{loveNote}&rdquo;
-                              </p>
+                              <div className="flex flex-col sm:flex-row items-center gap-5 my-2">
+                                <div className="relative w-36 sm:w-44 p-2.5 pb-4 bg-white border border-rose-200/80 rounded-sm shadow-md rotate-[-2deg] flex-shrink-0">
+                                  <div className="aspect-[4/5] w-full overflow-hidden rounded-xs bg-rose-50">
+                                    <img
+                                      src={polaroidPhoto || '/letter-assets/photo_polaroid.webp'}
+                                      alt="Couple memory"
+                                      decoding="async"
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </div>
+                                  <p className="text-center font-handwriting text-xs text-rose-950/70 mt-2 tracking-wide" style={{ fontFamily: "'Patrick Hand', cursive, sans-serif" }}>
+                                    {recipientName ? `${recipientName} & ${senderName} ♡` : 'u + me = <3'}
+                                  </p>
+                                </div>
+                                <p className="font-serif italic text-sm sm:text-base text-[#3a141b] leading-relaxed whitespace-pre-wrap flex-1">
+                                  &ldquo;{loveNote}&rdquo;
+                                </p>
+                              </div>
 
                               <div className="border-t border-rose-200/60 pt-3 text-right">
                                 <p className="text-xs text-[#841b2d]/70 font-light">With all my love,</p>

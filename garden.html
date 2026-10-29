@@ -9,11 +9,12 @@
   <meta property="og:description" content="Tap to bloom your handcrafted bouquet and unseal a romantic love note.">
   <meta property="og:image" content="/hero-flower.png">
   <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;600&family=Great+Vibes&family=Patrick+Hand&family=Pinyon+Script&family=Playfair+Display:ital,wght@0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Shantell+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="preload" as="video" href="/transition.mp4" type="video/mp4">
-  <link rel="preload" as="image" href="/letter-assets/photo_polaroid.png">
+  <link rel="preload" as="image" href="/bouquet/rosebouquet.webp" type="image/webp">
+  <link rel="preload" as="image" href="/letter-assets/photo_polaroid.webp" type="image/webp">
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     html, body {
@@ -257,6 +258,27 @@
       margin: 0 auto;
     }
 
+    /* Attached Reference Top Heading */
+    .bouquet-top-heading {
+      font-family: 'Patrick Hand', cursive, sans-serif !important;
+      font-size: clamp(26px, 5vw, 48px);
+      font-weight: 400;
+      color: #722834;
+      text-align: center;
+      margin: 0 0 clamp(6px, 1.5vh, 16px);
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+      user-select: none;
+      z-index: 10;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+      animation: fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) backwards 0.1s;
+    }
+    .bouquet-top-heading .heading-heart {
+      color: #841b2d;
+      margin-left: 6px;
+      display: inline-block;
+    }
+
     /* Grand Heroic Bouquet Stage */
     .bouquet-stage {
       position: relative;
@@ -281,22 +303,31 @@
     }
 
     /* The Large Centerpiece Bouquet Image (Prominent, Majestic & Extra Grand) */
-    .bouquet-image {
-      max-height: clamp(680px, 92vh, 1180px);
-      height: 92vh;
+    .bouquet-image,
+    .custom-bouquet-render {
+      max-height: clamp(560px, 80vh, 1060px);
+      height: 80vh;
       width: auto;
-      max-width: min(98vw, 1060px);
-      object-fit: contain;
+      max-width: min(96vw, 1000px);
       filter: drop-shadow(0 38px 70px rgba(180, 75, 90, 0.35)) drop-shadow(0 12px 28px rgba(0, 0, 0, 0.08));
       transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.4s ease;
       animation: bouquetFloat 5.2s ease-in-out infinite;
       will-change: transform;
     }
-    .bouquet-stage:hover .bouquet-image {
+    .bouquet-image {
+      object-fit: contain;
+    }
+    .custom-bouquet-render {
+      position: relative;
+      user-select: none;
+    }
+    .bouquet-stage:hover .bouquet-image,
+    .bouquet-stage:hover .custom-bouquet-render {
       transform: scale(1.025) translateY(-6px);
       filter: drop-shadow(0 42px 72px rgba(180, 75, 90, 0.38)) drop-shadow(0 12px 28px rgba(0, 0, 0, 0.12));
     }
-    .bouquet-stage:active .bouquet-image {
+    .bouquet-stage:active .bouquet-image,
+    .bouquet-stage:active .custom-bouquet-render {
       transform: scale(0.98);
     }
 
@@ -1442,9 +1473,57 @@
       pointer-events: none;
       z-index: 150;
     }
+
+    /* Floating Romantic Music Player Pill */
+    .floating-music-pill {
+      position: fixed;
+      top: calc(18px + env(safe-area-inset-top));
+      right: calc(18px + env(safe-area-inset-right));
+      z-index: 60;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 15px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1.5px solid rgba(225, 29, 72, 0.28);
+      color: #841b2d;
+      font-size: 11px;
+      font-weight: 700;
+      box-shadow: 0 4px 18px rgba(132, 27, 45, 0.14);
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .floating-music-pill:hover {
+      background: rgba(255, 255, 255, 0.98);
+      transform: translateY(-1px) scale(1.03);
+      box-shadow: 0 8px 25px rgba(132, 27, 45, 0.22);
+    }
+    .floating-music-pill.playing .music-note-icon {
+      display: inline-block;
+      animation: noteBeat 1.3s ease-in-out infinite alternate;
+    }
+    .floating-music-pill.hidden {
+      display: none !important;
+    }
+    @keyframes noteBeat {
+      0% { transform: scale(1) rotate(-6deg); }
+      100% { transform: scale(1.25) rotate(10deg); }
+    }
   </style>
 </head>
 <body>
+  <!-- Floating Romantic Music Player Pill -->
+  <button id="floating-music-toggle" class="floating-music-pill" title="Toggle romantic background music" aria-label="Toggle music">
+    <span class="music-note-icon">🎵</span>
+    <span id="music-track-name">Golden Hour Piano</span>
+    <span id="music-playback-state" style="opacity: 0.75; font-size: 10px;">▶</span>
+  </button>
+
   <!-- ============================================================= -->
   <!-- 1. SCREEN 1: TYPE GARDEN ("My Love")                          -->
   <!-- ============================================================= -->
@@ -1472,6 +1551,7 @@
       preload="auto"
       playsinline
       webkit-playsinline
+      muted
     ></video>
   </div>
   <div id="flash-screen-overlay" class="flash-screen-overlay"></div>
@@ -1494,13 +1574,17 @@
       </div>
 
       <div class="bouquet-hero-canvas-wrap">
+        <!-- Attached Reference Top Heading -->
+        <h1 class="bouquet-top-heading" style="font-family: 'Patrick Hand', cursive, sans-serif;">A beautiful bouquet for a beautiful person <span class="heading-heart">♥</span></h1>
+
         <!-- Grand Centerpiece Bouquet Stage -->
-        <div id="bouquet-stage" class="bouquet-stage" title="Tap to discover a romantic surprise!">
+        <div id="bouquet-stage" class="bouquet-stage" title="Tap to discover a surprise!">
           <div class="bouquet-halo"></div>
-          <img id="bouquet-main-img" src="/bouquet/rosebouquet.png" alt="Handcrafted Bouquet" class="bouquet-image" />
+          <img id="bouquet-main-img" src="/bouquet/rosebouquet.webp" alt="Handcrafted Bouquet" class="bouquet-image" decoding="async" />
+          <div id="custom-bouquet-render" class="custom-bouquet-render" style="display: none;"></div>
 
           <!-- Cute Option of Tap: Hand-Drawn Ribbon Banner & Surprise Subtitle (Placed above wrapper bottom) -->
-          <button id="unseal-letter-indicator" class="cute-tap-container" title="Tap to discover a romantic surprise">
+          <button id="unseal-letter-indicator" class="cute-tap-container" title="Tap to discover a surprise">
           <div class="cute-banner-graphic-row">
             <!-- Left Sparkle & Heart Doodles -->
             <div class="banner-decor decor-left">
@@ -1607,7 +1691,7 @@
           </div>
 
           <!-- Subtitle from attached image -->
-          <p class="banner-subtext">to discover a romantic surprise <span class="subtext-sparkle">✨</span></p>
+          <p class="banner-subtext">to discover a surprise <span class="subtext-sparkle">✨</span></p>
         </button>
         </div>
       </div>
@@ -1647,7 +1731,7 @@
             <div class="tucked-polaroid-wrap" id="tucked-polaroid-wrap">
               <div class="tucked-polaroid-washi">♥</div>
               <div class="tucked-polaroid-frame">
-                <img id="tucked-polaroid-img" class="tucked-polaroid-img" src="/letter-assets/photo_polaroid.png" alt="Memory" />
+                <img id="tucked-polaroid-img" class="tucked-polaroid-img" src="/letter-assets/photo_polaroid.webp" alt="Memory" loading="lazy" decoding="async" />
               </div>
               <div class="tucked-polaroid-chin">u + me = &lt;3</div>
             </div>
@@ -1707,7 +1791,7 @@
             </div>
             
             <div class="polaroid-photo-frame">
-              <img id="polaroid-img" class="polaroid-user-photo" src="/letter-assets/photo_polaroid.png" alt="Couple Memory" />
+              <img id="polaroid-img" class="polaroid-user-photo" src="/letter-assets/photo_polaroid.webp" alt="Couple Memory" loading="lazy" decoding="async" />
               <!-- Subtle lipstick doodle -->
               <svg class="polaroid-doodle" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M 45 25 Q 60 45 42 65 Q 38 72 44 80" stroke="#d81e28" stroke-width="2.5" stroke-linecap="round" fill="none"/>
@@ -1756,7 +1840,7 @@
             <!-- Mini Ribbon Bow -->
             <div class="polaroid-mini-bow">🎀</div>
             <div class="polaroid-mini-frame">
-              <img id="stamp-img" class="polaroid-mini-photo" src="/letter-assets/photo_mini.png" alt="Memory" />
+              <img id="stamp-img" class="polaroid-mini-photo" src="/letter-assets/photo_mini.webp" alt="Memory" loading="lazy" decoding="async" />
             </div>
             <div class="polaroid-mini-chin">
               <span>me + u</span>
@@ -1826,6 +1910,7 @@
       const loveLetterSection = document.getElementById('love-letter-section');
       const bouquetStage = document.getElementById('bouquet-stage');
       const bouquetMainImg = document.getElementById('bouquet-main-img');
+      const customBouquetRender = document.getElementById('custom-bouquet-render');
       const unsealLetterIndicator = document.getElementById('unseal-letter-indicator');
       const btnReturnBouquet = document.getElementById('btn-return-bouquet');
       const btnBottomCollapse = document.getElementById('btn-bottom-collapse');
@@ -1856,18 +1941,22 @@
       const confettiCanvas = document.getElementById('confetti-canvas');
       const cg = confettiCanvas.getContext('2d');
 
-      // Check stored custom inputs from App.jsx or previous direct edits
+      const urlParams = new URLSearchParams(window.location.search);
+      const isGiftLink = urlParams.has('to') || urlParams.has('note') || urlParams.has('preset') || urlParams.has('stems') || urlParams.has('from') || urlParams.has('photo');
+
+      // Check stored custom inputs from App.jsx or previous direct edits ONLY if not a gift link
       let storedTo = '';
       let storedFrom = '';
       let storedNote = '';
-      try {
-        storedTo = localStorage.getItem('bouquet_recipient_name') || '';
-        storedFrom = localStorage.getItem('bouquet_sender_name') || '';
-        storedNote = localStorage.getItem('bouquet_love_note') || '';
-      } catch (err) {}
+      if (!isGiftLink) {
+        try {
+          storedTo = localStorage.getItem('bouquet_recipient_name') || '';
+          storedFrom = localStorage.getItem('bouquet_sender_name') || '';
+          storedNote = localStorage.getItem('bouquet_love_note') || '';
+        } catch {}
+      }
 
-      // URL parameters for personalization (Priority: URL > localStorage > Default Reference Value)
-      const urlParams = new URLSearchParams(window.location.search);
+      // URL parameters for personalization (Priority: URL > localStorage (if not gift link) > Default Reference Value)
       const recipientTo = urlParams.get('to') || urlParams.get('for') || storedTo || 'Kenes';
       const senderFrom = urlParams.get('from') || urlParams.get('by') || storedFrom || 'Radleigh';
       const defaultHeartfeltNote = "Just a quick love letter because you've been living in my head rent-free since day one.\n\nYou're my safe space, my biggest flex, and my favorite person all in one.\n\nI'm honestly so obsessed with everything about you.\n\nThank you for being mine and for making everything feel so easy.\n\nYou're a literal 10/10 and I'm never letting go.";
@@ -1880,58 +1969,192 @@
         document.title = `For ${recipientTo} • Botanical Gift`;
       }
 
+      // Florist anchor positions for custom stems
+      function getSlotsForBlush(total) {
+        if (total <= 1) return [{ left: 50, bottom: 36, width: 38, height: 48, rotate: 0, zIndex: 14 }];
+        if (total === 2) return [
+          { left: 45, bottom: 36, width: 36, height: 46, rotate: -8, zIndex: 13 },
+          { left: 55, bottom: 36, width: 36, height: 46, rotate: 8, zIndex: 14 }
+        ];
+        if (total === 3) return [
+          { left: 50, bottom: 38, width: 36, height: 48, rotate: 0, zIndex: 12 },
+          { left: 42, bottom: 35, width: 35, height: 44, rotate: -12, zIndex: 14 },
+          { left: 58, bottom: 35, width: 35, height: 44, rotate: 12, zIndex: 14 }
+        ];
+        if (total === 4) return [
+          { left: 45, bottom: 38, width: 34, height: 47, rotate: -7, zIndex: 11 },
+          { left: 55, bottom: 38, width: 34, height: 47, rotate: 7, zIndex: 11 },
+          { left: 39, bottom: 35, width: 34, height: 44, rotate: -14, zIndex: 13 },
+          { left: 61, bottom: 35, width: 34, height: 44, rotate: 14, zIndex: 13 }
+        ];
+        if (total === 5) return [
+          { left: 50, bottom: 39, width: 34, height: 48, rotate: 0, zIndex: 11 },
+          { left: 42, bottom: 37, width: 33, height: 46, rotate: -10, zIndex: 12 },
+          { left: 58, bottom: 37, width: 33, height: 46, rotate: 10, zIndex: 12 },
+          { left: 40, bottom: 34, width: 33, height: 43, rotate: -15, zIndex: 14 },
+          { left: 60, bottom: 34, width: 33, height: 43, rotate: 15, zIndex: 14 }
+        ];
+        return [
+          { left: 50, bottom: 39, width: 34, height: 48, rotate: 0, zIndex: 11 },
+          { left: 41, bottom: 37, width: 33, height: 46, rotate: -11, zIndex: 12 },
+          { left: 59, bottom: 37, width: 33, height: 46, rotate: 11, zIndex: 12 },
+          { left: 36, bottom: 34, width: 33, height: 43, rotate: -18, zIndex: 13 },
+          { left: 64, bottom: 34, width: 33, height: 43, rotate: 18, zIndex: 13 },
+          { left: 50, bottom: 31, width: 35, height: 42, rotate: -1, zIndex: 15 }
+        ];
+      }
+
+      function getSlotsForWhite(total) {
+        if (total <= 1) return [{ left: 50, bottom: 46, width: 36, height: 40, rotate: 0, zIndex: 14 }];
+        if (total === 2) return [
+          { left: 45, bottom: 46, width: 34, height: 38, rotate: -8, zIndex: 13 },
+          { left: 55, bottom: 46, width: 34, height: 38, rotate: 8, zIndex: 14 }
+        ];
+        if (total === 3) return [
+          { left: 50, bottom: 48, width: 34, height: 40, rotate: 0, zIndex: 12 },
+          { left: 42, bottom: 45, width: 33, height: 37, rotate: -11, zIndex: 14 },
+          { left: 58, bottom: 45, width: 33, height: 37, rotate: 11, zIndex: 14 }
+        ];
+        if (total === 4) return [
+          { left: 45, bottom: 48, width: 33, height: 39, rotate: -7, zIndex: 11 },
+          { left: 55, bottom: 48, width: 33, height: 39, rotate: 7, zIndex: 11 },
+          { left: 40, bottom: 45, width: 32, height: 37, rotate: -13, zIndex: 13 },
+          { left: 60, bottom: 45, width: 32, height: 37, rotate: 13, zIndex: 13 }
+        ];
+        if (total === 5) return [
+          { left: 50, bottom: 49, width: 33, height: 40, rotate: 0, zIndex: 11 },
+          { left: 43, bottom: 47, width: 31, height: 38, rotate: -9, zIndex: 12 },
+          { left: 57, bottom: 47, width: 31, height: 38, rotate: 9, zIndex: 12 },
+          { left: 39, bottom: 44, width: 31, height: 36, rotate: -14, zIndex: 14 },
+          { left: 61, bottom: 44, width: 31, height: 36, rotate: 14, zIndex: 14 }
+        ];
+        return [
+          { left: 50, bottom: 49, width: 32, height: 40, rotate: 0, zIndex: 11 },
+          { left: 43, bottom: 47, width: 30, height: 38, rotate: -9, zIndex: 12 },
+          { left: 57, bottom: 47, width: 30, height: 38, rotate: 9, zIndex: 12 },
+          { left: 38, bottom: 44, width: 31, height: 36, rotate: -15, zIndex: 13 },
+          { left: 62, bottom: 44, width: 31, height: 36, rotate: 15, zIndex: 13 },
+          { left: 50, bottom: 43, width: 33, height: 35, rotate: -1, zIndex: 15 }
+        ];
+      }
+
       // Bouquet Resolution: Exact preset OR dominant custom flower
       const rawPreset = (urlParams.get('preset') || '').toLowerCase().trim();
       const dominantParam = (urlParams.get('dominant') || '').toLowerCase().trim();
       const stemsParam = urlParams.get('stems');
+      const wrapParam = (urlParams.get('wrap') || 'blush').toLowerCase().trim();
+      const wrapKey = wrapParam === 'white' ? 'white' : 'blush';
 
       let finalBouquet = 'rose';
+      let customBouquetRendered = false;
 
-      if (rawPreset === 'tulip') {
-        finalBouquet = 'tulip';
-      } else if (rawPreset === 'lily') {
-        finalBouquet = 'lily';
-      } else if (rawPreset === 'sunflower' || rawPreset === 'sun') {
-        finalBouquet = 'sunflower';
-      } else if (rawPreset === 'rose') {
-        finalBouquet = 'rose';
-      } else if (dominantParam === 'tulip' || dominantParam === 'lily' || dominantParam === 'sunflower' || dominantParam === 'sun' || dominantParam === 'rose') {
-        finalBouquet = (dominantParam === 'sun' ? 'sunflower' : dominantParam);
-      } else if (stemsParam) {
+      if (rawPreset === 'custom' && stemsParam && customBouquetRender) {
         try {
           const stemsData = JSON.parse(decodeURIComponent(stemsParam));
           if (Array.isArray(stemsData) && stemsData.length > 0) {
-            let maxCount = -1;
-            let topStemId = '';
-            stemsData.forEach(s => {
-              if (s.count > maxCount) {
-                maxCount = s.count;
-                topStemId = s.id || '';
+            const flowerList = [];
+            stemsData.forEach(item => {
+              const count = Math.min(6, Math.max(0, parseInt(item.count, 10) || 0));
+              const id = String(item.id || '').toLowerCase();
+              let imgSrc = '/flower/rose.webp';
+              let name = 'Rose';
+              if (id.includes('whiterose') || id.includes('white')) {
+                imgSrc = '/flower/whiterose.webp';
+                name = 'White Rose';
+              } else if (id.includes('tulip')) {
+                imgSrc = '/flower/tulip.webp';
+                name = 'Tulip';
+              } else if (id.includes('lily')) {
+                imgSrc = '/flower/lily.webp';
+                name = 'Lily';
+              }
+              for (let i = 0; i < count && flowerList.length < 6; i++) {
+                flowerList.push({ imgSrc, name });
               }
             });
-            if (topStemId.includes('sunflower') || topStemId.includes('sun')) finalBouquet = 'sunflower';
-            else if (topStemId.includes('lily')) finalBouquet = 'lily';
-            else if (topStemId.includes('tulip')) finalBouquet = 'tulip';
-            else finalBouquet = 'rose';
+
+            if (flowerList.length > 0) {
+              const isWhiteWrap = wrapKey === 'white';
+              const backImg = isWhiteWrap ? '/white_wrapper.webp' : '/pink-wrapper.webp';
+              const frontImg = isWhiteWrap ? '/white_wrapper_front.webp' : '/wrapper_front.webp';
+              const slots = isWhiteWrap ? getSlotsForWhite(flowerList.length) : getSlotsForBlush(flowerList.length);
+
+              let stemsHtml = '';
+              flowerList.forEach((flower, idx) => {
+                const slot = slots[idx] || slots[0];
+                stemsHtml += `
+                  <div style="position: absolute; left: ${slot.left}%; bottom: ${slot.bottom}%; width: ${slot.width}%; height: ${slot.height}%; transform-origin: bottom center; transform: translateX(-50%) rotate(${slot.rotate}deg); z-index: ${slot.zIndex};">
+                    <div style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; filter: drop-shadow(0 8px 14px rgba(0,0,0,0.22)) drop-shadow(0 2px 4px rgba(132,27,45,0.12));">
+                      <img src="${flower.imgSrc}" alt="${flower.name}" decoding="async" style="width: 100%; height: 100%; object-fit: contain; object-position: bottom; pointer-events: none;" />
+                    </div>
+                  </div>
+                `;
+              });
+
+              customBouquetRender.style.aspectRatio = isWhiteWrap ? '896 / 1194' : '1610 / 2400';
+              customBouquetRender.innerHTML = `
+                <img src="${backImg}" alt="Wrapper Back" decoding="async" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; z-index: 0;" />
+                <div style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;">
+                  ${stemsHtml}
+                </div>
+                <img src="${frontImg}" alt="Wrapper Front" decoding="async" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; z-index: 20;" />
+              `;
+              customBouquetRender.style.display = 'block';
+              bouquetMainImg.style.display = 'none';
+              customBouquetRendered = true;
+            }
           }
         } catch (e) {
-          finalBouquet = 'rose';
+          console.warn('Custom bouquet parse error:', e);
         }
       }
 
-      // Set Bouquet Preset Image
-      if (finalBouquet === 'tulip') {
-        bouquetMainImg.src = '/bouquet/tulipbouquet.png';
-        bouquetMainImg.alt = 'Blushing Dutch Tulips Bouquet';
-      } else if (finalBouquet === 'lily') {
-        bouquetMainImg.src = '/bouquet/lilybouquet.png';
-        bouquetMainImg.alt = 'Pure Grace Stargazer Lilies Bouquet';
-      } else if (finalBouquet === 'sunflower') {
-        bouquetMainImg.src = '/bouquet/sunbouquet.png';
-        bouquetMainImg.alt = 'Golden Sunlight Blooms Bouquet';
-      } else {
-        bouquetMainImg.src = '/bouquet/rosebouquet.png';
-        bouquetMainImg.alt = 'Velvet Crimson Roses Bouquet';
+      if (!customBouquetRendered) {
+        if (customBouquetRender) customBouquetRender.style.display = 'none';
+        bouquetMainImg.style.display = 'block';
+        if (rawPreset === 'tulip') {
+          finalBouquet = 'tulip';
+        } else if (rawPreset === 'lily') {
+          finalBouquet = 'lily';
+        } else if (rawPreset === 'sunflower' || rawPreset === 'sun') {
+          finalBouquet = 'sunflower';
+        } else if (rawPreset === 'rose') {
+          finalBouquet = 'rose';
+        } else if (dominantParam === 'tulip' || dominantParam === 'lily' || dominantParam === 'sunflower' || dominantParam === 'sun' || dominantParam === 'rose') {
+          finalBouquet = (dominantParam === 'sun' ? 'sunflower' : dominantParam);
+        } else if (stemsParam) {
+          try {
+            const stemsData = JSON.parse(decodeURIComponent(stemsParam));
+            if (Array.isArray(stemsData) && stemsData.length > 0) {
+              let maxCount = -1;
+              let topStemId = '';
+              stemsData.forEach(s => {
+                if (s.count > maxCount) {
+                  maxCount = s.count;
+                  topStemId = s.id || '';
+                }
+              });
+              if (topStemId.includes('sunflower') || topStemId.includes('sun')) finalBouquet = 'sunflower';
+              else if (topStemId.includes('lily')) finalBouquet = 'lily';
+              else if (topStemId.includes('tulip')) finalBouquet = 'tulip';
+              else finalBouquet = 'rose';
+            }
+          } catch {}
+        }
+
+        if (finalBouquet === 'tulip') {
+          bouquetMainImg.src = '/bouquet/tulipbouquet.webp';
+          bouquetMainImg.alt = 'Blushing Dutch Tulips Bouquet';
+        } else if (finalBouquet === 'lily') {
+          bouquetMainImg.src = '/bouquet/lilybouquet.webp';
+          bouquetMainImg.alt = 'Pure Grace Stargazer Lilies Bouquet';
+        } else if (finalBouquet === 'sunflower') {
+          bouquetMainImg.src = '/bouquet/sunbouquet.webp';
+          bouquetMainImg.alt = 'Golden Sunlight Blooms Bouquet';
+        } else {
+          bouquetMainImg.src = '/bouquet/rosebouquet.webp';
+          bouquetMainImg.alt = 'Velvet Crimson Roses Bouquet';
+        }
       }
 
       // Populate Text Elements
@@ -1949,23 +2172,284 @@
       if (tuckedBodyContent) tuckedBodyContent.textContent = noteContent;
       if (tuckedFromName) tuckedFromName.textContent = `${senderFrom} ♡`;
 
-      // Restore custom uploaded photos from localStorage or use defaults
-      try {
-        const savedPolaroid = localStorage.getItem('bouquet_custom_polaroid');
-        if (savedPolaroid) {
-          if (polaroidImg) polaroidImg.src = savedPolaroid;
-          if (tuckedPolaroidImg) tuckedPolaroidImg.src = savedPolaroid;
+      // Photo Resolution Priority:
+      // 1. URL search parameter 'photo' / 'img' / 'pic'
+      // 2. URL hash parameter '#photo=...'
+      // 3. Fallback to localStorage only if NOT a shared gift link from another sender
+      // 4. Clean default reference polaroid
+      let photoParam = urlParams.get('photo') || urlParams.get('img') || urlParams.get('pic');
+      if (!photoParam && window.location.hash) {
+        try {
+          const hashMatch = window.location.hash.match(/[#&]photo=([^&]+)/);
+          if (hashMatch && hashMatch[1]) {
+            photoParam = decodeURIComponent(hashMatch[1]);
+          }
+        } catch {}
+      }
+
+      if (photoParam) {
+        if (polaroidImg) {
+          polaroidImg.onerror = () => { polaroidImg.src = '/letter-assets/photo_polaroid.webp'; };
+          polaroidImg.src = photoParam;
+        }
+        if (tuckedPolaroidImg) {
+          tuckedPolaroidImg.onerror = () => { tuckedPolaroidImg.src = '/letter-assets/photo_polaroid.webp'; };
+          tuckedPolaroidImg.src = photoParam;
+        }
+        try { localStorage.setItem('bouquet_custom_polaroid', photoParam); } catch {}
+      } else {
+        let fallbackPhoto = null;
+        if (!isGiftLink) {
+          try { fallbackPhoto = localStorage.getItem('bouquet_custom_polaroid'); } catch {}
+        }
+        const finalPhoto = fallbackPhoto || '/letter-assets/photo_polaroid.webp';
+        if (polaroidImg) polaroidImg.src = finalPhoto;
+        if (tuckedPolaroidImg) tuckedPolaroidImg.src = finalPhoto;
+      }
+      if (stampImg) {
+        stampImg.src = '/letter-assets/photo_mini.webp';
+      }
+
+      // =======================================================================
+      // ROMANTIC BACKGROUND MUSIC ENGINE (Web Audio API)
+      // =======================================================================
+      const floatingMusicToggle = document.getElementById('floating-music-toggle');
+      const musicTrackName = document.getElementById('music-track-name');
+      const musicPlaybackState = document.getElementById('music-playback-state');
+
+      const musicParam = (urlParams.get('music') || 'piano').toLowerCase().trim();
+      const MUSIC_NAMES = {
+        piano: 'Golden Hour Piano',
+        musicbox: 'Vintage Music Box',
+        acoustic: 'Acoustic Sunset',
+        harp: 'Dreamy Fairy Harp',
+        none: 'Silent'
+      };
+
+      let audioCtx = null;
+      let masterGain = null;
+      let isMusicPlaying = false;
+      let musicLoopTimer = null;
+      let activeOscNodes = [];
+
+      function initAudio() {
+        if (!audioCtx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) {
+            audioCtx = new AudioContextClass();
+            masterGain = audioCtx.createGain();
+            masterGain.gain.setValueAtTime(0.24, audioCtx.currentTime);
+            masterGain.connect(audioCtx.destination);
+          }
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume().catch(() => {});
+        }
+      }
+
+      const MF = {
+        C2: 65.41, F2: 87.31, G2: 98.00, A2: 110.00,
+        C3: 130.81, D3: 146.83, E3: 164.81, F3: 174.61, G3: 196.00, A3: 220.00, B3: 246.94,
+        C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.00, A4: 440.00, B4: 493.88,
+        C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, A5: 880.00, B5: 987.77,
+        C6: 1046.50, D6: 1174.66, E6: 1318.51, G6: 1567.98
+      };
+
+      function playMusicNote(freq, startTime, duration = 1.2, type = 'piano', velocity = 0.5) {
+        if (!audioCtx || !masterGain || !freq) return;
+        const now = startTime || audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
+
+        if (type === 'piano') {
+          osc.type = 'triangle';
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(1600, now);
+          filter.frequency.exponentialRampToValueAtTime(600, now + duration);
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.linearRampToValueAtTime(0.32 * velocity, now + 0.015);
+          gain.gain.exponentialRampToValueAtTime(0.12 * velocity, now + 0.3);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+        } else if (type === 'musicbox') {
+          osc.type = 'sine';
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(3200, now);
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.linearRampToValueAtTime(0.28 * velocity, now + 0.008);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+        } else if (type === 'acoustic') {
+          osc.type = 'triangle';
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(1200, now);
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.linearRampToValueAtTime(0.35 * velocity, now + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.05 * velocity, now + 0.4);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
         } else {
-          if (polaroidImg) polaroidImg.src = '/letter-assets/photo_polaroid.png';
-          if (tuckedPolaroidImg) tuckedPolaroidImg.src = '/letter-assets/photo_polaroid.png';
+          // Harp
+          osc.type = 'sine';
+          filter.type = 'bandpass';
+          filter.frequency.setValueAtTime(1800, now);
+          filter.Q.setValueAtTime(1.2, now);
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.linearRampToValueAtTime(0.3 * velocity, now + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + duration * 1.3);
         }
-        const savedStamp = localStorage.getItem('bouquet_custom_stamp');
-        if (savedStamp && stampImg) {
-          stampImg.src = savedStamp;
-        } else if (stampImg) {
-          stampImg.src = '/letter-assets/photo_mini.png';
+
+        osc.frequency.setValueAtTime(freq, now);
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(masterGain);
+        osc.start(now);
+        osc.stop(now + duration + 0.1);
+        activeOscNodes.push({ osc, gain });
+      }
+
+      function scheduleMelodyLoop() {
+        if (!isMusicPlaying || musicParam === 'none') return;
+        const base = audioCtx.currentTime + 0.05;
+        let loopDuration = 9.6;
+
+        if (musicParam === 'musicbox') {
+          loopDuration = 8.4;
+          const notes = [
+            { f: MF.E5, t: 0.0 }, { f: MF.G5, t: 0.35 }, { f: MF.C6, t: 0.7 }, { f: MF.B5, t: 1.05 },
+            { f: MF.G5, t: 1.4 }, { f: MF.A5, t: 1.75 }, { f: MF.C6, t: 2.1 }, { f: MF.E6, t: 2.8 },
+            { f: MF.D6, t: 3.5 }, { f: MF.B5, t: 4.2 }, { f: MF.G5, t: 4.55 }, { f: MF.A5, t: 4.9 },
+            { f: MF.C6, t: 5.6 }, { f: MF.E5, t: 6.3 }, { f: MF.G5, t: 6.65 }, { f: MF.C6, t: 7.2 }
+          ];
+          notes.forEach(n => playMusicNote(n.f, base + n.t, 1.1, 'musicbox', 0.75));
+        } else if (musicParam === 'acoustic') {
+          loopDuration = 8.0;
+          const pattern = [
+            MF.C3, MF.G3, MF.E4, MF.G3,
+            MF.A2, MF.E3, MF.C4, MF.E3,
+            MF.F2, MF.C3, MF.A3, MF.C3,
+            MF.G2, MF.D3, MF.B3, MF.D3
+          ];
+          pattern.forEach((f, idx) => playMusicNote(f, base + idx * 0.5, 0.9, 'acoustic', 0.7));
+        } else if (musicParam === 'harp') {
+          loopDuration = 8.8;
+          const harpNotes = [
+            MF.C4, MF.E4, MF.G4, MF.B4, MF.C5, MF.E5, MF.G5, MF.B5,
+            MF.A5, MF.G5, MF.E5, MF.C5, MF.B4, MF.G4, MF.E4, MF.C4
+          ];
+          harpNotes.forEach((f, idx) => playMusicNote(f, base + idx * 0.52, 1.8, 'harp', 0.65));
+        } else {
+          // Default: Golden Hour Piano
+          loopDuration = 9.6;
+          // Bar 1: Cmaj7
+          playMusicNote(MF.C3, base + 0.0, 2.4, 'piano', 0.6);
+          playMusicNote(MF.G3, base + 0.05, 2.4, 'piano', 0.5);
+          playMusicNote(MF.B3, base + 0.1, 2.4, 'piano', 0.45);
+          playMusicNote(MF.E4, base + 0.15, 2.4, 'piano', 0.55);
+          playMusicNote(MF.G4, base + 0.0, 1.2, 'piano', 0.7);
+          playMusicNote(MF.C5, base + 0.6, 1.2, 'piano', 0.8);
+          playMusicNote(MF.B4, base + 1.2, 1.2, 'piano', 0.65);
+          playMusicNote(MF.G4, base + 1.8, 1.2, 'piano', 0.55);
+
+          // Bar 2: Am7
+          playMusicNote(MF.A2, base + 2.4, 2.4, 'piano', 0.6);
+          playMusicNote(MF.E3, base + 2.45, 2.4, 'piano', 0.5);
+          playMusicNote(MF.G3, base + 2.5, 2.4, 'piano', 0.45);
+          playMusicNote(MF.C4, base + 2.55, 2.4, 'piano', 0.55);
+          playMusicNote(MF.E4, base + 2.4, 1.2, 'piano', 0.65);
+          playMusicNote(MF.A4, base + 3.0, 1.2, 'piano', 0.75);
+          playMusicNote(MF.C5, base + 3.6, 1.2, 'piano', 0.85);
+          playMusicNote(MF.E5, base + 4.2, 1.2, 'piano', 0.75);
+
+          // Bar 3: Fmaj7
+          playMusicNote(MF.F2, base + 4.8, 2.4, 'piano', 0.6);
+          playMusicNote(MF.C3, base + 4.85, 2.4, 'piano', 0.5);
+          playMusicNote(MF.E3, base + 4.9, 2.4, 'piano', 0.45);
+          playMusicNote(MF.A3, base + 4.95, 2.4, 'piano', 0.55);
+          playMusicNote(MF.F4, base + 4.8, 1.2, 'piano', 0.65);
+          playMusicNote(MF.A4, base + 5.4, 1.2, 'piano', 0.75);
+          playMusicNote(MF.C5, base + 6.0, 1.2, 'piano', 0.8);
+          playMusicNote(MF.D5, base + 6.6, 1.2, 'piano', 0.7);
+
+          // Bar 4: G -> C
+          playMusicNote(MF.G2, base + 7.2, 2.2, 'piano', 0.6);
+          playMusicNote(MF.D3, base + 7.25, 2.2, 'piano', 0.5);
+          playMusicNote(MF.G3, base + 7.3, 2.2, 'piano', 0.45);
+          playMusicNote(MF.B3, base + 7.35, 2.2, 'piano', 0.55);
+          playMusicNote(MF.D5, base + 7.2, 1.2, 'piano', 0.75);
+          playMusicNote(MF.E5, base + 7.8, 1.2, 'piano', 0.85);
+          playMusicNote(MF.D5, base + 8.4, 1.2, 'piano', 0.65);
+          playMusicNote(MF.C5, base + 9.0, 1.4, 'piano', 0.8);
         }
-      } catch (err) {}
+
+        musicLoopTimer = setTimeout(scheduleMelodyLoop, (loopDuration - 0.1) * 1000);
+      }
+
+      function startBackgroundMusic() {
+        if (musicParam === 'none' || isMusicPlaying) return;
+        initAudio();
+        if (!audioCtx) return;
+        isMusicPlaying = true;
+        updateMusicUI(true);
+        scheduleMelodyLoop();
+      }
+
+      function stopBackgroundMusic() {
+        isMusicPlaying = false;
+        if (musicLoopTimer) {
+          clearTimeout(musicLoopTimer);
+          musicLoopTimer = null;
+        }
+        if (activeOscNodes.length > 0) {
+          activeOscNodes.forEach(({ osc, gain }) => {
+            try {
+              gain.gain.setValueAtTime(gain.gain.value, audioCtx?.currentTime || 0);
+              gain.gain.exponentialRampToValueAtTime(0.0001, (audioCtx?.currentTime || 0) + 0.08);
+              osc.stop((audioCtx?.currentTime || 0) + 0.1);
+            } catch (e) {}
+          });
+          activeOscNodes = [];
+        }
+        updateMusicUI(false);
+      }
+
+      function toggleBackgroundMusic() {
+        if (isMusicPlaying) {
+          stopBackgroundMusic();
+        } else {
+          startBackgroundMusic();
+        }
+      }
+
+      function updateMusicUI(playing) {
+        if (!floatingMusicToggle) return;
+        if (musicParam === 'none') {
+          floatingMusicToggle.classList.add('hidden');
+          return;
+        }
+        if (musicTrackName) {
+          musicTrackName.textContent = MUSIC_NAMES[musicParam] || 'Romantic Melody';
+        }
+        if (musicPlaybackState) {
+          musicPlaybackState.textContent = playing ? '⏸' : '▶';
+        }
+        if (playing) {
+          floatingMusicToggle.classList.add('playing');
+        } else {
+          floatingMusicToggle.classList.remove('playing');
+        }
+      }
+
+      // Initialize floating music toggle button
+      if (floatingMusicToggle) {
+        if (musicParam === 'none') {
+          floatingMusicToggle.classList.add('hidden');
+        } else {
+          updateMusicUI(false);
+          floatingMusicToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleBackgroundMusic();
+          });
+        }
+      }
 
       // Type Garden Engine Variables
       let W = 0, H = 0, dpr = 1;
@@ -2634,21 +3118,14 @@
 
         if (transitionVideo) {
           transitionVideo.currentTime = 0;
-          transitionVideo.muted = false;
+          transitionVideo.muted = true;
           transitionVideo.playbackRate = TRANSITION_PLAYBACK_SPEED;
 
           const playPromise = transitionVideo.play();
           if (playPromise !== undefined) {
             playPromise.then(() => {
               transitionVideo.playbackRate = TRANSITION_PLAYBACK_SPEED;
-            }).catch(err => {
-              // If browser requires user interaction for sound, fallback to muted play
-              console.warn('Audio play restricted, playing muted:', err);
-              transitionVideo.muted = true;
-              transitionVideo.play().then(() => {
-                transitionVideo.playbackRate = TRANSITION_PLAYBACK_SPEED;
-              }).catch(() => {});
-            });
+            }).catch(() => {});
           }
 
           // Safety fallback timer adjusted for higher playback speed
@@ -2950,6 +3427,7 @@
       // TAP ON TYPE GARDEN SCREEN -> TRIGGER HEART BLOOM BLANKET TRANSITION
       // =============================================================
       function handleGardenTap() {
+        startBackgroundMusic();
         if (isTransitioning || bouquetPage.classList.contains('active')) return;
         startFlowerTransition();
       }
@@ -2967,8 +3445,9 @@
         tapIndicator.addEventListener('touchend', handleGardenTap, { passive: true });
       }
 
-      // Transition Video Listeners: Radiant flash at climax and ended
+      // Transition Video Listeners: Silent video & climax flash reveal
       if (transitionVideo) {
+        transitionVideo.muted = true;
         transitionVideo.defaultPlaybackRate = TRANSITION_PLAYBACK_SPEED;
         transitionVideo.playbackRate = TRANSITION_PLAYBACK_SPEED;
 

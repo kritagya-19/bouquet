@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+.font-cute-heading {
+  font-family: 'Patrick Hand', cursive, sans-serif !important;
+}
+
 @layer base {
   :root {
     --font-serif: 'Italiana', 'Cormorant Garamond', Georgia, serif;
