@@ -294,36 +294,3 @@ class RomanticAudioManager {
 }
 
 export const romanticAudio = new RomanticAudioManager()
-
-export function parseSpotifyUrl(url) {
-  if (!url) return null
-  const clean = String(url).trim()
-  const match = clean.match(/(?:open\.spotify\.com\/(?:intl-[a-z]+\/)?(track|album|playlist)\/([a-zA-Z0-9]+)|spotify:(track|album|playlist):([a-zA-Z0-9]+))/i)
-  if (!match) return null
-  const type = match[1] || match[3] || 'track'
-  const id = match[2] || match[4]
-  return {
-    type,
-    id,
-    embedUrl: `https://open.spotify.com/embed/${type}/${id}?utm_source=generator&theme=0`,
-    openUrl: `https://open.spotify.com/${type}/${id}`
-  }
-}
-
-export function normalizeAudioUrl(url) {
-  if (!url) return ''
-  let clean = String(url).trim()
-  if (clean.includes('dropbox.com')) {
-    clean = clean.replace('?dl=0', '?raw=1').replace('&dl=0', '&raw=1')
-    if (!clean.includes('raw=1')) {
-      clean += (clean.includes('?') ? '&' : '?') + 'raw=1'
-    }
-  }
-  if (clean.includes('drive.google.com/file/d/')) {
-    const idMatch = clean.match(/\/file\/d\/([a-zA-Z0-9_-]+)/)
-    if (idMatch && idMatch[1]) {
-      clean = `https://drive.google.com/uc?export=download&id=${idMatch[1]}`
-    }
-  }
-  return clean
-}

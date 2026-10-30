@@ -1517,10 +1517,6 @@
   </style>
 </head>
 <body>
-  <!-- Floating Top Spotify Player for Garden Screen -->
-  <div id="garden-spotify-bar" class="garden-spotify-bar hidden" style="position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 9999; width: min(92vw, 380px); border-radius: 14px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.55); background: #121212; border: 1px solid rgba(255,255,255,0.18);">
-    <div id="garden-spotify-frame-wrap"></div>
-  </div>
   <!-- Floating Romantic Music Player Pill -->
   <button id="floating-music-toggle" class="floating-music-pill" title="Toggle romantic background music" aria-label="Toggle music">
     <span class="music-note-icon">🎵</span>
@@ -1697,15 +1693,6 @@
           <!-- Subtitle from attached image -->
           <p class="banner-subtext">to discover a surprise <span class="subtext-sparkle">✨</span></p>
         </button>
-
-          <!-- Spotify Dedicated Player Embed (Bouquet Screen) -->
-          <div id="bouquet-spotify-card" class="bouquet-spotify-embed hidden" style="width: min(92vw, 420px); margin: 18px auto 6px; text-align: center;">
-            <div style="display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #15803d; background: rgba(220, 252, 231, 0.9); padding: 4px 12px; border-radius: 9999px; margin-bottom: 8px; border: 1px solid rgba(134, 239, 172, 0.8); box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
-              <span>💚</span>
-              <span id="bouquet-spotify-title">A Song Dedicated To You</span>
-            </div>
-            <div id="bouquet-spotify-frame-wrap" style="border-radius: 14px; overflow: hidden; box-shadow: 0 10px 24px rgba(0,0,0,0.18); background: #121212;"></div>
-          </div>
         </div>
       </div>
     </section>
@@ -1859,15 +1846,6 @@
             </div>
           </div>
 
-        </div>
-
-        <!-- Spotify Dedicated Player Embed (Love Letter Screen) -->
-        <div id="letter-spotify-card" class="letter-spotify-embed hidden" style="width: min(92vw, 460px); margin: 20px auto 12px; text-align: center; position: relative; z-index: 10;">
-          <div style="display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #15803d; background: rgba(220, 252, 231, 0.9); padding: 4px 12px; border-radius: 9999px; margin-bottom: 8px; border: 1px solid rgba(134, 239, 172, 0.8); box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
-            <span>💚</span>
-            <span id="letter-spotify-title">Our Special Song</span>
-          </div>
-          <div id="letter-spotify-frame-wrap" style="border-radius: 14px; overflow: hidden; box-shadow: 0 12px 28px rgba(0,0,0,0.22); background: #121212;"></div>
         </div>
 
         <!-- Bottom Collapse Card Action -->
@@ -2246,26 +2224,7 @@
       const musicParam = (urlParams.get('music') || 'piano').toLowerCase().trim();
       const musicUrlParam = urlParams.get('musicUrl') || urlParams.get('song') || '';
       const musicTitleParam = urlParams.get('musicTitle') || '';
-      function parseSpotifyUrl(url) {
-        if (!url) return null;
-        const clean = String(url).trim();
-        const match = clean.match(/(?:open\.spotify\.com\/(?:intl-[a-z]+\/)?(track|album|playlist)\/([a-zA-Z0-9]+)|spotify:(track|album|playlist):([a-zA-Z0-9]+))/i);
-        if (!match) return null;
-        const type = match[1] || match[3] || 'track';
-        const id = match[2] || match[4];
-        return {
-          type,
-          id,
-          embedUrl: `https://open.spotify.com/embed/${type}/${id}?utm_source=generator&theme=0`,
-          openUrl: `https://open.spotify.com/${type}/${id}`
-        };
-      }
-
-      const spotifyInfo = parseSpotifyUrl(musicUrlParam);
-      const isSpotifySong = !!spotifyInfo || musicParam === 'spotify';
-
       const MUSIC_NAMES = {
-        spotify: musicTitleParam || 'Our Spotify Song',
         piano: 'Golden Hour Piano',
         musicbox: 'Vintage Music Box',
         acoustic: 'Acoustic Sunset',
@@ -2435,65 +2394,32 @@
       function startBackgroundMusic() {
         if (musicParam === 'none' || isMusicPlaying) return;
 
-        // When Spotify is active, ABSOLUTELY NO OTHER background music must play!
-        if (isSpotifySong || musicParam === 'spotify') {
-          return;
-        }
-
-        let customSrc = musicUrlParam;
-        if (!customSrc && window.location.hash) {
-          try {
-            const hp = new URLSearchParams(window.location.hash.substring(1));
-            customSrc = hp.get('musicUrl') || hp.get('song') || '';
-          } catch {}
-        }
-        if (!customSrc) {
-          try {
-            customSrc = localStorage.getItem('bouquet_custom_music_url') || localStorage.getItem('bouquet_custom_audio') || '';
-          } catch {}
-        }
-
-        if (!isSpotifySong && (musicParam === 'custom' || musicUrlParam || customSrc) && customSrc) {
+        const customSrc = musicUrlParam || (!isGiftLink ? (localStorage.getItem('bouquet_custom_music_url') || localStorage.getItem('bouquet_custom_audio')) : '');
+        if ((musicParam === 'custom' || musicUrlParam) && customSrc) {
           if (!customAudioEl) {
             customAudioEl = new Audio();
             customAudioEl.loop = true;
+            customAudioEl.volume = 0.20; // Low gentle background volume
           }
-          if (customAudioEl.src !== customSrc) {
-            customAudioEl.src = customSrc;
-          }
-          customAudioEl.volume = 0.20; // Slow, soft romantic background volume
-          const playPromise = customAudioEl.play();
-          if (playPromise !== undefined) {
-            playPromise.then(() => {
-              isMusicPlaying = true;
-              updateMusicUI(true);
-              removeInteractionListeners();
-            }).catch(() => {
-              // Browser autoplay policy blocked unprompted play; waits for first interaction
-              isMusicPlaying = false;
-              updateMusicUI(false);
-            });
-          }
+          customAudioEl.src = customSrc;
+          customAudioEl.play().then(() => {
+            isMusicPlaying = true;
+            updateMusicUI(true);
+          }).catch(() => {
+            initAudio();
+            if (!audioCtx) return;
+            isMusicPlaying = true;
+            updateMusicUI(true);
+            scheduleMelodyLoop();
+          });
           return;
         }
 
         initAudio();
         if (!audioCtx) return;
-        if (audioCtx.state === 'suspended') {
-          audioCtx.resume().then(() => {
-            isMusicPlaying = true;
-            updateMusicUI(true);
-            scheduleMelodyLoop();
-            removeInteractionListeners();
-          }).catch(() => {
-            isMusicPlaying = false;
-          });
-          return;
-        }
         isMusicPlaying = true;
         updateMusicUI(true);
         scheduleMelodyLoop();
-        removeInteractionListeners();
       }
 
       function stopBackgroundMusic() {
@@ -2547,43 +2473,6 @@
         }
       }
 
-      // Mount Spotify Embed if song link provided
-      if (spotifyInfo) {
-        const bouquetCard = document.getElementById('bouquet-spotify-card');
-        const bouquetWrap = document.getElementById('bouquet-spotify-frame-wrap');
-        const letterCard = document.getElementById('letter-spotify-card');
-        const letterWrap = document.getElementById('letter-spotify-frame-wrap');
-        const bouquetTitle = document.getElementById('bouquet-spotify-title');
-        const letterTitle = document.getElementById('letter-spotify-title');
-
-        if (musicTitleParam) {
-          if (bouquetTitle) bouquetTitle.textContent = musicTitleParam;
-          if (letterTitle) letterTitle.textContent = musicTitleParam;
-        }
-
-        const iframeHtml = `<iframe src="${spotifyInfo.embedUrl}" width="100%" height="80" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border: 0; width: 100%; display: block;"></iframe>`;
-
-        if (bouquetCard && bouquetWrap) {
-          bouquetWrap.innerHTML = iframeHtml;
-          bouquetCard.classList.remove('hidden');
-        }
-        if (letterCard && letterWrap) {
-          letterWrap.innerHTML = iframeHtml;
-          letterCard.classList.remove('hidden');
-        }
-
-        // Custom action for Spotify toggle
-        if (floatingMusicToggle) {
-          floatingMusicToggle.onclick = (e) => {
-            e.stopPropagation();
-            const targetEl = document.getElementById('bouquet-spotify-card') || document.getElementById('letter-spotify-card');
-            if (targetEl && !targetEl.classList.contains('hidden')) {
-              targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-          };
-        }
-      }
-
       // Initialize floating music toggle button
       if (floatingMusicToggle) {
         if (musicParam === 'none') {
@@ -2595,39 +2484,6 @@
             toggleBackgroundMusic();
           });
         }
-      }
-
-      // =============================================================
-      // AUTO-START MUSIC: Try immediately on page load + fallback
-      // Browsers often require a user gesture for unmuted audio.
-      // We try on load, and listen to ANY first gesture so music starts
-      // as soon as the receiver interacts in any way.
-      // =============================================================
-      const FIRST_INTERACTION_EVENTS = ['touchstart', 'touchend', 'pointerdown', 'mousedown', 'click', 'keydown', 'scroll'];
-
-      function removeInteractionListeners() {
-        FIRST_INTERACTION_EVENTS.forEach(ev =>
-          window.removeEventListener(ev, onFirstInteraction, { capture: true })
-        );
-      }
-
-      function onFirstInteraction() {
-        if (musicParam === 'none') return;
-        if (!isMusicPlaying) {
-          startBackgroundMusic();
-        }
-      }
-
-      function attemptAutoplay() {
-        if (musicParam === 'none') return;
-        // Direct attempt: will start if allowed by browser policy
-        startBackgroundMusic();
-      }
-
-      if (musicParam !== 'none') {
-        FIRST_INTERACTION_EVENTS.forEach(ev =>
-          window.addEventListener(ev, onFirstInteraction, { capture: true, passive: true })
-        );
       }
 
       // Type Garden Engine Variables
@@ -3671,10 +3527,6 @@
       function init() {
         resize();
         window.addEventListener('resize', resize);
-
-        // Attempt silent autoplay on page load (works on many mobile browsers
-        // when the page is opened via a tapped notification link)
-        attemptAutoplay();
 
         const now = performance.now();
         for (const ch of TARGET_TEXT) {
