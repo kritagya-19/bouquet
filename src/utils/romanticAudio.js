@@ -5,6 +5,13 @@
 
 export const ROMANTIC_MELODIES = [
   {
+    id: 'blue',
+    name: 'Blue',
+    tagline: 'Romantic background song',
+    emoji: '💙',
+    accent: '#3b82f6',
+  },
+  {
     id: 'piano',
     name: 'Golden Hour Piano',
     tagline: 'Gentle, emotional romantic piano waltz',
@@ -153,6 +160,21 @@ class RomanticAudioManager {
   playMelody(melodyId = 'piano') {
     this.stop()
     if (melodyId === 'none') return
+
+    if (melodyId === 'blue') {
+      if (!this.customAudio && typeof window !== 'undefined') {
+        this.customAudio = new Audio()
+        this.customAudio.loop = true
+      }
+      if (this.customAudio) {
+        this.customAudio.src = '/blue.mp3'
+        this.customAudio.volume = 0.25
+        this.customAudio.play().catch(() => {})
+        this.isPlaying = true
+        this.currentMelodyId = 'blue'
+      }
+      return
+    }
 
     if (melodyId === 'custom') {
       if (this.customUrl) {

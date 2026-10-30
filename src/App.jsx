@@ -404,8 +404,8 @@ export default function App() {
     }
   }
 
-  // Background Romantic Melody Selection
-  const [selectedMusic, setSelectedMusic] = useState(initialGiftData?.music || 'piano')
+  // Background Romantic Melody Selection (defaults to blue.mp3)
+  const [selectedMusic, setSelectedMusic] = useState(initialGiftData?.music || 'blue')
   const [previewPlayingMelody, setPreviewPlayingMelody] = useState(null)
 
   // Custom Background Music (from Link or Device)
@@ -638,7 +638,7 @@ export default function App() {
         params.set('musicTitle', customMusicTitle)
       }
     } else {
-      params.set('music', selectedMusic || 'piano')
+      params.set('music', selectedMusic || 'blue')
     }
 
     if (selectedPreset) {

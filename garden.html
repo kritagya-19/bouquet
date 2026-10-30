@@ -1473,56 +1473,9 @@
       pointer-events: none;
       z-index: 150;
     }
-
-    /* Floating Romantic Music Player Pill */
-    .floating-music-pill {
-      position: fixed;
-      top: calc(18px + env(safe-area-inset-top));
-      right: calc(18px + env(safe-area-inset-right));
-      z-index: 60;
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 7px 15px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.82);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1.5px solid rgba(225, 29, 72, 0.28);
-      color: #841b2d;
-      font-size: 11px;
-      font-weight: 700;
-      box-shadow: 0 4px 18px rgba(132, 27, 45, 0.14);
-      cursor: pointer;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .floating-music-pill:hover {
-      background: rgba(255, 255, 255, 0.98);
-      transform: translateY(-1px) scale(1.03);
-      box-shadow: 0 8px 25px rgba(132, 27, 45, 0.22);
-    }
-    .floating-music-pill.playing .music-note-icon {
-      display: inline-block;
-      animation: noteBeat 1.3s ease-in-out infinite alternate;
-    }
-    .floating-music-pill.hidden {
-      display: none !important;
-    }
-    @keyframes noteBeat {
-      0% { transform: scale(1) rotate(-6deg); }
-      100% { transform: scale(1.25) rotate(10deg); }
-    }
   </style>
 </head>
 <body>
-  <!-- Floating Romantic Music Player Pill -->
-  <button id="floating-music-toggle" class="floating-music-pill" title="Toggle romantic background music" aria-label="Toggle music">
-    <span class="music-note-icon">🎵</span>
-    <span id="music-track-name">Golden Hour Piano</span>
-    <span id="music-playback-state" style="opacity: 0.75; font-size: 10px;">▶</span>
-  </button>
 
   <!-- ============================================================= -->
   <!-- 1. SCREEN 1: TYPE GARDEN ("My Love")                          -->
@@ -2215,276 +2168,98 @@
       }
 
       // =======================================================================
-      // ROMANTIC BACKGROUND MUSIC ENGINE (Web Audio API)
+      // ROMANTIC BACKGROUND MUSIC ENGINE (blue.mp3)
       // =======================================================================
-      const floatingMusicToggle = document.getElementById('floating-music-toggle');
-      const musicTrackName = document.getElementById('music-track-name');
-      const musicPlaybackState = document.getElementById('music-playback-state');
+      const musicParam = (urlParams.get('music') || '').toLowerCase().trim();
+      let customAudioUrl = urlParams.get('musicUrl') || urlParams.get('song') || '';
+      if (!customAudioUrl && window.location.hash) {
+        try {
+          const hp = new URLSearchParams(window.location.hash.substring(1));
+          customAudioUrl = hp.get('musicUrl') || hp.get('song') || '';
+        } catch {}
+      }
+      if (!customAudioUrl && !isGiftLink) {
+        try {
+          customAudioUrl = localStorage.getItem('bouquet_custom_music_url') || localStorage.getItem('bouquet_custom_audio') || '';
+        } catch {}
+      }
 
-      const musicParam = (urlParams.get('music') || 'piano').toLowerCase().trim();
-      const musicUrlParam = urlParams.get('musicUrl') || urlParams.get('song') || '';
-      const musicTitleParam = urlParams.get('musicTitle') || '';
-      const MUSIC_NAMES = {
-        piano: 'Golden Hour Piano',
-        musicbox: 'Vintage Music Box',
-        acoustic: 'Acoustic Sunset',
-        harp: 'Dreamy Fairy Harp',
-        custom: musicTitleParam || 'Custom Romantic Song',
-        none: 'Silent'
-      };
+      // Default to /blue.mp3 as background music, or custom if explicitly supplied
+      const bgMusicSrc = (musicParam === 'none') ? null : (customAudioUrl || '/blue.mp3');
 
-      let audioCtx = null;
-      let masterGain = null;
+      let bgAudioEl = null;
       let isMusicPlaying = false;
-      let musicLoopTimer = null;
-      let activeOscNodes = [];
-      let customAudioEl = null;
 
-      function initAudio() {
-        if (!audioCtx) {
-          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-          if (AudioContextClass) {
-            audioCtx = new AudioContextClass();
-            masterGain = audioCtx.createGain();
-            masterGain.gain.setValueAtTime(0.20, audioCtx.currentTime); // Low gentle background volume
-            masterGain.connect(audioCtx.destination);
-          }
+      function getOrCreateBgAudio() {
+        if (!bgMusicSrc) return null;
+        if (!bgAudioEl) {
+          bgAudioEl = new Audio();
+          bgAudioEl.loop = true;
+          bgAudioEl.volume = 0.25; // Gentle slow romantic volume
+          bgAudioEl.src = bgMusicSrc;
+          bgAudioEl.preload = 'auto';
         }
-        if (audioCtx && audioCtx.state === 'suspended') {
-          audioCtx.resume().catch(() => {});
-        }
-      }
-
-      const MF = {
-        C2: 65.41, F2: 87.31, G2: 98.00, A2: 110.00,
-        C3: 130.81, D3: 146.83, E3: 164.81, F3: 174.61, G3: 196.00, A3: 220.00, B3: 246.94,
-        C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.00, A4: 440.00, B4: 493.88,
-        C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, A5: 880.00, B5: 987.77,
-        C6: 1046.50, D6: 1174.66, E6: 1318.51, G6: 1567.98
-      };
-
-      function playMusicNote(freq, startTime, duration = 1.2, type = 'piano', velocity = 0.5) {
-        if (!audioCtx || !masterGain || !freq) return;
-        const now = startTime || audioCtx.currentTime;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        const filter = audioCtx.createBiquadFilter();
-
-        if (type === 'piano') {
-          osc.type = 'triangle';
-          filter.type = 'lowpass';
-          filter.frequency.setValueAtTime(1600, now);
-          filter.frequency.exponentialRampToValueAtTime(600, now + duration);
-          gain.gain.setValueAtTime(0.0001, now);
-          gain.gain.linearRampToValueAtTime(0.32 * velocity, now + 0.015);
-          gain.gain.exponentialRampToValueAtTime(0.12 * velocity, now + 0.3);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-        } else if (type === 'musicbox') {
-          osc.type = 'sine';
-          filter.type = 'lowpass';
-          filter.frequency.setValueAtTime(3200, now);
-          gain.gain.setValueAtTime(0.0001, now);
-          gain.gain.linearRampToValueAtTime(0.28 * velocity, now + 0.008);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-        } else if (type === 'acoustic') {
-          osc.type = 'triangle';
-          filter.type = 'lowpass';
-          filter.frequency.setValueAtTime(1200, now);
-          gain.gain.setValueAtTime(0.0001, now);
-          gain.gain.linearRampToValueAtTime(0.35 * velocity, now + 0.01);
-          gain.gain.exponentialRampToValueAtTime(0.05 * velocity, now + 0.4);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-        } else {
-          // Harp
-          osc.type = 'sine';
-          filter.type = 'bandpass';
-          filter.frequency.setValueAtTime(1800, now);
-          filter.Q.setValueAtTime(1.2, now);
-          gain.gain.setValueAtTime(0.0001, now);
-          gain.gain.linearRampToValueAtTime(0.3 * velocity, now + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + duration * 1.3);
-        }
-
-        osc.frequency.setValueAtTime(freq, now);
-        osc.connect(filter);
-        filter.connect(gain);
-        gain.connect(masterGain);
-        osc.start(now);
-        osc.stop(now + duration + 0.1);
-        activeOscNodes.push({ osc, gain });
-      }
-
-      function scheduleMelodyLoop() {
-        if (!isMusicPlaying || musicParam === 'none') return;
-        const base = audioCtx.currentTime + 0.05;
-        let loopDuration = 9.6;
-
-        if (musicParam === 'musicbox') {
-          loopDuration = 8.4;
-          const notes = [
-            { f: MF.E5, t: 0.0 }, { f: MF.G5, t: 0.35 }, { f: MF.C6, t: 0.7 }, { f: MF.B5, t: 1.05 },
-            { f: MF.G5, t: 1.4 }, { f: MF.A5, t: 1.75 }, { f: MF.C6, t: 2.1 }, { f: MF.E6, t: 2.8 },
-            { f: MF.D6, t: 3.5 }, { f: MF.B5, t: 4.2 }, { f: MF.G5, t: 4.55 }, { f: MF.A5, t: 4.9 },
-            { f: MF.C6, t: 5.6 }, { f: MF.E5, t: 6.3 }, { f: MF.G5, t: 6.65 }, { f: MF.C6, t: 7.2 }
-          ];
-          notes.forEach(n => playMusicNote(n.f, base + n.t, 1.1, 'musicbox', 0.75));
-        } else if (musicParam === 'acoustic') {
-          loopDuration = 8.0;
-          const pattern = [
-            MF.C3, MF.G3, MF.E4, MF.G3,
-            MF.A2, MF.E3, MF.C4, MF.E3,
-            MF.F2, MF.C3, MF.A3, MF.C3,
-            MF.G2, MF.D3, MF.B3, MF.D3
-          ];
-          pattern.forEach((f, idx) => playMusicNote(f, base + idx * 0.5, 0.9, 'acoustic', 0.7));
-        } else if (musicParam === 'harp') {
-          loopDuration = 8.8;
-          const harpNotes = [
-            MF.C4, MF.E4, MF.G4, MF.B4, MF.C5, MF.E5, MF.G5, MF.B5,
-            MF.A5, MF.G5, MF.E5, MF.C5, MF.B4, MF.G4, MF.E4, MF.C4
-          ];
-          harpNotes.forEach((f, idx) => playMusicNote(f, base + idx * 0.52, 1.8, 'harp', 0.65));
-        } else {
-          // Default: Golden Hour Piano
-          loopDuration = 9.6;
-          // Bar 1: Cmaj7
-          playMusicNote(MF.C3, base + 0.0, 2.4, 'piano', 0.6);
-          playMusicNote(MF.G3, base + 0.05, 2.4, 'piano', 0.5);
-          playMusicNote(MF.B3, base + 0.1, 2.4, 'piano', 0.45);
-          playMusicNote(MF.E4, base + 0.15, 2.4, 'piano', 0.55);
-          playMusicNote(MF.G4, base + 0.0, 1.2, 'piano', 0.7);
-          playMusicNote(MF.C5, base + 0.6, 1.2, 'piano', 0.8);
-          playMusicNote(MF.B4, base + 1.2, 1.2, 'piano', 0.65);
-          playMusicNote(MF.G4, base + 1.8, 1.2, 'piano', 0.55);
-
-          // Bar 2: Am7
-          playMusicNote(MF.A2, base + 2.4, 2.4, 'piano', 0.6);
-          playMusicNote(MF.E3, base + 2.45, 2.4, 'piano', 0.5);
-          playMusicNote(MF.G3, base + 2.5, 2.4, 'piano', 0.45);
-          playMusicNote(MF.C4, base + 2.55, 2.4, 'piano', 0.55);
-          playMusicNote(MF.E4, base + 2.4, 1.2, 'piano', 0.65);
-          playMusicNote(MF.A4, base + 3.0, 1.2, 'piano', 0.75);
-          playMusicNote(MF.C5, base + 3.6, 1.2, 'piano', 0.85);
-          playMusicNote(MF.E5, base + 4.2, 1.2, 'piano', 0.75);
-
-          // Bar 3: Fmaj7
-          playMusicNote(MF.F2, base + 4.8, 2.4, 'piano', 0.6);
-          playMusicNote(MF.C3, base + 4.85, 2.4, 'piano', 0.5);
-          playMusicNote(MF.E3, base + 4.9, 2.4, 'piano', 0.45);
-          playMusicNote(MF.A3, base + 4.95, 2.4, 'piano', 0.55);
-          playMusicNote(MF.F4, base + 4.8, 1.2, 'piano', 0.65);
-          playMusicNote(MF.A4, base + 5.4, 1.2, 'piano', 0.75);
-          playMusicNote(MF.C5, base + 6.0, 1.2, 'piano', 0.8);
-          playMusicNote(MF.D5, base + 6.6, 1.2, 'piano', 0.7);
-
-          // Bar 4: G -> C
-          playMusicNote(MF.G2, base + 7.2, 2.2, 'piano', 0.6);
-          playMusicNote(MF.D3, base + 7.25, 2.2, 'piano', 0.5);
-          playMusicNote(MF.G3, base + 7.3, 2.2, 'piano', 0.45);
-          playMusicNote(MF.B3, base + 7.35, 2.2, 'piano', 0.55);
-          playMusicNote(MF.D5, base + 7.2, 1.2, 'piano', 0.75);
-          playMusicNote(MF.E5, base + 7.8, 1.2, 'piano', 0.85);
-          playMusicNote(MF.D5, base + 8.4, 1.2, 'piano', 0.65);
-          playMusicNote(MF.C5, base + 9.0, 1.4, 'piano', 0.8);
-        }
-
-        musicLoopTimer = setTimeout(scheduleMelodyLoop, (loopDuration - 0.1) * 1000);
+        return bgAudioEl;
       }
 
       function startBackgroundMusic() {
-        if (musicParam === 'none' || isMusicPlaying) return;
-
-        const customSrc = musicUrlParam || (!isGiftLink ? (localStorage.getItem('bouquet_custom_music_url') || localStorage.getItem('bouquet_custom_audio')) : '');
-        if ((musicParam === 'custom' || musicUrlParam) && customSrc) {
-          if (!customAudioEl) {
-            customAudioEl = new Audio();
-            customAudioEl.loop = true;
-            customAudioEl.volume = 0.20; // Low gentle background volume
-          }
-          customAudioEl.src = customSrc;
-          customAudioEl.play().then(() => {
+        if (!bgMusicSrc || isMusicPlaying) return;
+        const audio = getOrCreateBgAudio();
+        if (!audio) return;
+        const p = audio.play();
+        if (p !== undefined) {
+          p.then(() => {
             isMusicPlaying = true;
-            updateMusicUI(true);
+            removeGestureListeners();
           }).catch(() => {
-            initAudio();
-            if (!audioCtx) return;
-            isMusicPlaying = true;
-            updateMusicUI(true);
-            scheduleMelodyLoop();
+            // Autoplay blocked without user gesture; fallback to first interaction
+            isMusicPlaying = false;
           });
-          return;
         }
-
-        initAudio();
-        if (!audioCtx) return;
-        isMusicPlaying = true;
-        updateMusicUI(true);
-        scheduleMelodyLoop();
       }
 
       function stopBackgroundMusic() {
-        isMusicPlaying = false;
-        if (customAudioEl) {
+        if (bgAudioEl) {
           try {
-            customAudioEl.pause();
+            bgAudioEl.pause();
           } catch {}
+          isMusicPlaying = false;
         }
-        if (musicLoopTimer) {
-          clearTimeout(musicLoopTimer);
-          musicLoopTimer = null;
-        }
-        if (activeOscNodes.length > 0) {
-          activeOscNodes.forEach(({ osc, gain }) => {
-            try {
-              gain.gain.setValueAtTime(gain.gain.value, audioCtx?.currentTime || 0);
-              gain.gain.exponentialRampToValueAtTime(0.0001, (audioCtx?.currentTime || 0) + 0.08);
-              osc.stop((audioCtx?.currentTime || 0) + 0.1);
-            } catch {}
-          });
-          activeOscNodes = [];
-        }
-        updateMusicUI(false);
       }
 
-      function toggleBackgroundMusic() {
-        if (isMusicPlaying) {
-          stopBackgroundMusic();
-        } else {
+      // First-interaction listeners to guarantee music starts on all mobile and desktop browsers
+      const GESTURE_EVENTS = ['touchstart', 'touchend', 'pointerdown', 'mousedown', 'click', 'keydown', 'scroll'];
+      function onFirstUserGesture() {
+        if (!isMusicPlaying && bgMusicSrc) {
           startBackgroundMusic();
         }
       }
-
-      function updateMusicUI(playing) {
-        if (!floatingMusicToggle) return;
-        if (musicParam === 'none') {
-          floatingMusicToggle.classList.add('hidden');
-          return;
-        }
-        if (musicTrackName) {
-          musicTrackName.textContent = MUSIC_NAMES[musicParam] || musicTitleParam || 'Custom Romantic Song';
-        }
-        if (musicPlaybackState) {
-          musicPlaybackState.textContent = playing ? '⏸' : '▶';
-        }
-        if (playing) {
-          floatingMusicToggle.classList.add('playing');
-        } else {
-          floatingMusicToggle.classList.remove('playing');
-        }
+      function removeGestureListeners() {
+        GESTURE_EVENTS.forEach(ev =>
+          window.removeEventListener(ev, onFirstUserGesture, { capture: true })
+        );
+      }
+      if (bgMusicSrc) {
+        GESTURE_EVENTS.forEach(ev =>
+          window.addEventListener(ev, onFirstUserGesture, { capture: true, passive: true })
+        );
       }
 
-      // Initialize floating music toggle button
-      if (floatingMusicToggle) {
-        if (musicParam === 'none') {
-          floatingMusicToggle.classList.add('hidden');
-        } else {
-          updateMusicUI(false);
-          floatingMusicToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleBackgroundMusic();
-          });
+      // When receiver leaves the website (switches tab, minimizes, or closes page), stop the music
+      // When returning to the website tab, resume playing
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          stopBackgroundMusic();
+        } else if (bgMusicSrc) {
+          startBackgroundMusic();
         }
-      }
+      });
+      window.addEventListener('pagehide', () => {
+        stopBackgroundMusic();
+      });
+      window.addEventListener('beforeunload', () => {
+        stopBackgroundMusic();
+      });
 
       // Type Garden Engine Variables
       let W = 0, H = 0, dpr = 1;
@@ -3527,6 +3302,9 @@
       function init() {
         resize();
         window.addEventListener('resize', resize);
+
+        // Auto-play blue.mp3 as soon as receiver opens the website
+        startBackgroundMusic();
 
         const now = performance.now();
         for (const ch of TARGET_TEXT) {
