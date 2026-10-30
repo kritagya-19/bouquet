@@ -437,13 +437,15 @@ export default function App() {
     if (!file) return
     setDeviceMusicFileName(file.name)
     const suggestedTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ')
-    if (!customMusicTitle) {
-      setCustomMusicTitle(suggestedTitle)
-    }
+    setCustomMusicTitle(suggestedTitle)  // always set from file name
     const objectUrl = URL.createObjectURL(file)
     setCustomMusicUrl(objectUrl)
     setSelectedMusic('custom')
-    romanticAudio.setCustomAudio(objectUrl, customMusicTitle || suggestedTitle)
+    // Use suggestedTitle directly (not stale state) so audio manager gets correct title immediately
+    romanticAudio.setCustomAudio(objectUrl, suggestedTitle)
+    // Auto-play preview immediately so user can hear it right away
+    romanticAudio.playMelody('custom')
+    setPreviewPlayingMelody('custom')
 
     if (file.size <= 4 * 1024 * 1024) {
       const reader = new FileReader()
