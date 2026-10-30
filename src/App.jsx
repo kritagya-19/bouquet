@@ -23,7 +23,7 @@ import {
 import confetti from 'canvas-confetti'
 import CreatedBouquet from './components/CreatedBouquet'
 import ScallopCard from './components/ScallopCard'
-import { ROMANTIC_MELODIES, romanticAudio } from './utils/romanticAudio'
+import { ROMANTIC_MELODIES, romanticAudio, parseSpotifyUrl, normalizeAudioUrl } from './utils/romanticAudio'
 
 const MAX_FLOWERS = 6
 
@@ -404,24 +404,25 @@ export default function App() {
     }
   }
 
-  // Background Romantic Melody Selection
-  const [selectedMusic, setSelectedMusic] = useState(initialGiftData?.music || 'piano')
+  // Background Romantic Melody Selection (Defaults to custom Spotify track)
+  const [selectedMusic, setSelectedMusic] = useState(initialGiftData?.music || 'custom')
   const [previewPlayingMelody, setPreviewPlayingMelody] = useState(null)
 
-  // Custom Background Music (from Link or Device)
+  // Custom Background Music (pre-configured with your Spotify track)
   const [customMusicUrl, setCustomMusicUrl] = useState(() => {
     if (initialGiftData?.musicUrl) return initialGiftData.musicUrl
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('bouquet_custom_music_url') || localStorage.getItem('bouquet_custom_audio') || ''
+      const stored = localStorage.getItem('bouquet_custom_music_url') || localStorage.getItem('bouquet_custom_audio')
+      if (stored && !stored.startsWith('blob:')) return stored
     }
-    return ''
+    return 'https://open.spotify.com/track/2OH8Gp3m5bLRoqFpoxkFxp?si=ae06666fc43745e2'
   })
   const [customMusicTitle, setCustomMusicTitle] = useState(() => {
     if (initialGiftData?.musicTitle) return initialGiftData.musicTitle
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('bouquet_custom_music_title') || ''
+      return localStorage.getItem('bouquet_custom_music_title') || 'Line Without a Hook (Spotify)'
     }
-    return ''
+    return 'Line Without a Hook (Spotify)'
   })
   const [customMusicSource, setCustomMusicSource] = useState('link') // 'link' | 'device'
   const [deviceMusicFileName, setDeviceMusicFileName] = useState('')
@@ -460,12 +461,19 @@ export default function App() {
   }
 
   const handleMusicUrlChange = (val) => {
-    setCustomMusicUrl(val)
-    if (val) {
+    const normalized = normalizeAudioUrl(val)
+    setCustomMusicUrl(normalized)
+    if (normalized) {
       setSelectedMusic('custom')
-      romanticAudio.setCustomAudio(val, customMusicTitle || 'Custom Romantic Song')
+      const spotifyInfo = parseSpotifyUrl(normalized)
+      if (spotifyInfo) {
+        romanticAudio.stop()
+        setPreviewPlayingMelody(null)
+      } else {
+        romanticAudio.setCustomAudio(normalized, customMusicTitle || 'Custom Romantic Song')
+      }
       try {
-        localStorage.setItem('bouquet_custom_music_url', val)
+        localStorage.setItem('bouquet_custom_music_url', normalized)
       } catch {}
     }
   }
@@ -630,9 +638,15 @@ export default function App() {
     params.set('note', loveNote)
     params.set('wrap', selectedWrapId)
     if (selectedMusic === 'custom') {
-      params.set('music', 'custom')
-      if (customMusicUrl && !customMusicUrl.startsWith('blob:') && !customMusicUrl.startsWith('data:')) {
-        params.set('musicUrl', customMusicUrl)
+      const spotifyInfo = parseSpotifyUrl(customMusicUrl)
+      if (spotifyInfo) {
+        params.set('music', 'spotify')
+        params.set('musicUrl', spotifyInfo.openUrl)
+      } else {
+        params.set('music', 'custom')
+        if (customMusicUrl && !customMusicUrl.startsWith('blob:') && !customMusicUrl.startsWith('data:')) {
+          params.set('musicUrl', normalizeAudioUrl(customMusicUrl))
+        }
       }
       if (customMusicTitle) {
         params.set('musicTitle', customMusicTitle)
@@ -2070,119 +2084,177 @@ export default function App() {
                                     </div>
                                   </div>
 
-                                  {/* Music Link */}
-                                  <div className={`rounded-xl border transition-all overflow-hidden ${
-                                    customMusicSource === 'link' && selectedMusic === 'custom'
-                                      ? 'border-[#841b2d] bg-rose-50/80 shadow-sm ring-1 ring-[#841b2d]/20'
-                                      : 'border-rose-200/60 bg-white/80'
-                                  }`}>
-                                    <div className="p-2.5">
-                                      <div className="flex items-center gap-1.5 mb-2">
-                                        <span className="text-sm">🔗</span>
-                                        <span className="text-[11px] font-bold text-[#841b2d]">Paste Music Link</span>
-                                      </div>
-                                      <div className="flex items-center gap-1.5">
-                                        <input
-                                          type="url"
-                                          value={customMusicUrl && !customMusicUrl.startsWith('blob:') ? customMusicUrl : ''}
-                                          onChange={(e) => {
-                                            setCustomMusicSource('link')
-                                            handleMusicUrlChange(e.target.value)
-                                          }}
-                                          placeholder="https://…/song.mp3"
-                                          className="flex-1 min-w-0 px-2.5 py-1.5 text-[11px] rounded-lg border border-rose-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#841b2d]/20 text-stone-800"
-                                        />
-                                        {customMusicUrl && !customMusicUrl.startsWith('blob:') && selectedMusic === 'custom' && (
-                                          <button
-                                            type="button"
-                                            onClick={() => handleToggleMusicPreview('custom')}
-                                            title={previewPlayingMelody === 'custom' ? 'Pause' : 'Test link'}
-                                            className="p-1.5 rounded-lg bg-rose-100 hover:bg-[#841b2d] hover:text-white text-[#841b2d] transition-all cursor-pointer flex-shrink-0"
-                                          >
-                                            {previewPlayingMelody === 'custom'
-                                              ? <Pause className="w-3 h-3 fill-current" />
-                                              : <Play className="w-3 h-3 fill-current ml-0.5" />
-                                            }
-                                          </button>
-                                        )}
-                                      </div>
-                                      <p className="text-[9px] text-stone-500 mt-1.5 leading-tight">
-                                        Direct .mp3 / .wav links work best
-                                      </p>
-                                    </div>
-                                  </div>
-                                </div>
+                                  {/* Music Link (Spotify or Direct MP3) */}
+                                   <div className={`rounded-xl border transition-all overflow-hidden ${
+                                     customMusicSource === 'link' && selectedMusic === 'custom'
+                                       ? 'border-[#841b2d] bg-rose-50/80 shadow-sm ring-1 ring-[#841b2d]/20'
+                                       : 'border-rose-200/60 bg-white/80'
+                                   }`}>
+                                     <div className="p-2.5">
+                                       <div className="flex items-center justify-between gap-1.5 mb-2">
+                                         <div className="flex items-center gap-1.5">
+                                           <span className="text-sm">🔗</span>
+                                           <span className="text-[11px] font-bold text-[#841b2d]">Spotify or MP3 Link</span>
+                                         </div>
+                                         <span className="text-[9px] font-bold text-emerald-800 bg-emerald-100/90 px-1.5 py-0.5 rounded border border-emerald-200">
+                                           Shareable ✨
+                                         </span>
+                                       </div>
+                                       <div className="flex items-center gap-1.5">
+                                         <input
+                                           type="url"
+                                           value={customMusicUrl && !customMusicUrl.startsWith('blob:') ? customMusicUrl : ''}
+                                           onChange={(e) => {
+                                             setCustomMusicSource('link')
+                                             handleMusicUrlChange(e.target.value)
+                                           }}
+                                           placeholder="Spotify link or https://…/song.mp3"
+                                           className="flex-1 min-w-0 px-2.5 py-1.5 text-[11px] rounded-lg border border-rose-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#841b2d]/20 text-stone-800"
+                                         />
+                                         {customMusicUrl && !customMusicUrl.startsWith('blob:') && selectedMusic === 'custom' && !parseSpotifyUrl(customMusicUrl) && (
+                                           <button
+                                             type="button"
+                                             onClick={() => handleToggleMusicPreview('custom')}
+                                             title={previewPlayingMelody === 'custom' ? 'Pause' : 'Test link'}
+                                             className="p-1.5 rounded-lg bg-rose-100 hover:bg-[#841b2d] hover:text-white text-[#841b2d] transition-all cursor-pointer flex-shrink-0"
+                                           >
+                                             {previewPlayingMelody === 'custom'
+                                               ? <Pause className="w-3 h-3 fill-current" />
+                                               : <Play className="w-3 h-3 fill-current ml-0.5" />
+                                             }
+                                           </button>
+                                         )}
+                                       </div>
+                                       <p className="text-[9px] text-stone-500 mt-1.5 leading-tight">
+                                         Paste any <strong>Spotify song link</strong> or direct <strong>.mp3 URL</strong>
+                                       </p>
+                                     </div>
+                                   </div>
+                                 </div>
 
-                                {/* Song title + preview/remove row when custom music set */}
-                                {selectedMusic === 'custom' && customMusicUrl && (
-                                  <motion.div
-                                    initial={{ opacity: 0, y: -4 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="mt-2 pt-2 border-t border-rose-200/50 flex items-center gap-2"
-                                  >
-                                    <div className="flex-1">
-                                      <input
-                                        type="text"
-                                        value={customMusicTitle}
-                                        onChange={(e) => {
-                                          setCustomMusicTitle(e.target.value)
-                                          try { localStorage.setItem('bouquet_custom_music_title', e.target.value) } catch {}
-                                        }}
-                                        placeholder="Song name (shown on player badge)"
-                                        className="w-full px-2.5 py-1.5 text-[11px] rounded-lg border border-rose-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#841b2d] text-stone-800"
-                                      />
-                                    </div>
-                                    {customMusicUrl && customMusicUrl.startsWith('blob:') && (
-                                      <button
-                                        type="button"
-                                        onClick={() => handleToggleMusicPreview('custom')}
-                                        className="px-2.5 py-1.5 rounded-lg bg-rose-100 hover:bg-[#841b2d] hover:text-white text-[#841b2d] text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0"
-                                      >
-                                        {previewPlayingMelody === 'custom'
-                                          ? <><Pause className="w-3 h-3 fill-current" /><span>Pause</span></>
-                                          : <><Play className="w-3 h-3 fill-current ml-0.5" /><span>Preview</span></>
-                                        }
-                                      </button>
-                                    )}
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        romanticAudio.stop()
-                                        setPreviewPlayingMelody(null)
-                                        setCustomMusicUrl('')
-                                        setDeviceMusicFileName('')
-                                        setCustomMusicTitle('')
-                                        setSelectedMusic('piano')
-                                        try {
-                                          localStorage.removeItem('bouquet_custom_music_url')
-                                          localStorage.removeItem('bouquet_custom_audio')
-                                          localStorage.removeItem('bouquet_custom_music_title')
-                                        } catch {}
-                                      }}
-                                      title="Remove custom song"
-                                      className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 transition-all cursor-pointer shrink-0"
-                                    >
-                                      <X className="w-3.5 h-3.5" />
-                                    </button>
-                                  </motion.div>
-                                )}
+                                 {/* Spotify Track Preview Embed if Spotify link entered */}
+                                 {selectedMusic === 'custom' && customMusicUrl && parseSpotifyUrl(customMusicUrl) && (
+                                   <motion.div
+                                     initial={{ opacity: 0, y: -4 }}
+                                     animate={{ opacity: 1, y: 0 }}
+                                     className="mt-2.5 p-2.5 rounded-xl bg-emerald-50/90 border border-emerald-300 shadow-xs"
+                                   >
+                                     <div className="flex items-center justify-between mb-1.5">
+                                       <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800">
+                                         <span className="text-base">💚</span>
+                                         <span>Spotify Track Connected</span>
+                                       </div>
+                                       <span className="text-[10px] font-semibold text-emerald-700 bg-white px-2 py-0.5 rounded-full border border-emerald-200">
+                                         Ready to share
+                                       </span>
+                                     </div>
+                                     <div className="rounded-xl overflow-hidden shadow-xs border border-emerald-200/60 bg-black">
+                                       <iframe
+                                         src={parseSpotifyUrl(customMusicUrl).embedUrl}
+                                         width="100%"
+                                         height="80"
+                                         frameBorder="0"
+                                         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                                         loading="lazy"
+                                         title="Spotify Preview"
+                                       />
+                                     </div>
+                                     <p className="text-[10px] text-emerald-900 mt-1.5 leading-snug">
+                                       ✨ <strong>How she will hear it:</strong> Your Spotify player will be embedded directly in her love letter &amp; bouquet so she can tap play and listen to your song!
+                                     </p>
+                                   </motion.div>
+                                 )}
 
-                                {/* Warning for device-uploaded blob URLs */}
-                                {selectedMusic === 'custom' && customMusicUrl && customMusicUrl.startsWith('blob:') && (
-                                  <p className="mt-1.5 text-[9.5px] text-amber-700 bg-amber-50 border border-amber-200/60 rounded-lg px-2.5 py-1.5 leading-tight">
-                                    ⚠️ Device music plays locally. To share with the receiver over a link, paste a direct audio URL in the &ldquo;Paste Music Link&rdquo; box.
-                                  </p>
-                                )}
-                              </div>
+                                 {/* Song title + preview/remove row when custom music set */}
+                                 {selectedMusic === 'custom' && customMusicUrl && (
+                                   <motion.div
+                                     initial={{ opacity: 0, y: -4 }}
+                                     animate={{ opacity: 1, y: 0 }}
+                                     className="mt-2 pt-2 border-t border-rose-200/50 flex items-center gap-2"
+                                   >
+                                     <div className="flex-1">
+                                       <input
+                                         type="text"
+                                         value={customMusicTitle}
+                                         onChange={(e) => {
+                                           setCustomMusicTitle(e.target.value)
+                                           try { localStorage.setItem('bouquet_custom_music_title', e.target.value) } catch {}
+                                         }}
+                                         placeholder="Song name (shown on player badge)"
+                                         className="w-full px-2.5 py-1.5 text-[11px] rounded-lg border border-rose-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#841b2d] text-stone-800"
+                                       />
+                                     </div>
+                                     {customMusicUrl && customMusicUrl.startsWith('blob:') && (
+                                       <button
+                                         type="button"
+                                         onClick={() => handleToggleMusicPreview('custom')}
+                                         className="px-2.5 py-1.5 rounded-lg bg-rose-100 hover:bg-[#841b2d] hover:text-white text-[#841b2d] text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0"
+                                       >
+                                         {previewPlayingMelody === 'custom'
+                                           ? <><Pause className="w-3 h-3 fill-current" /><span>Pause</span></>
+                                           : <><Play className="w-3 h-3 fill-current ml-0.5" /><span>Preview</span></>
+                                         }
+                                       </button>
+                                     )}
+                                     <button
+                                       type="button"
+                                       onClick={() => {
+                                         romanticAudio.stop()
+                                         setPreviewPlayingMelody(null)
+                                         setCustomMusicUrl('')
+                                         setDeviceMusicFileName('')
+                                         setCustomMusicTitle('')
+                                         setSelectedMusic('piano')
+                                         try {
+                                           localStorage.removeItem('bouquet_custom_music_url')
+                                           localStorage.removeItem('bouquet_custom_audio')
+                                           localStorage.removeItem('bouquet_custom_music_title')
+                                         } catch {}
+                                       }}
+                                       title="Remove custom song"
+                                       className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 transition-all cursor-pointer shrink-0"
+                                     >
+                                       <X className="w-3.5 h-3.5" />
+                                     </button>
+                                   </motion.div>
+                                 )}
 
-                              {/* Divider */}
-                              <div className="flex items-center gap-2 mb-2.5">
-                                <div className="h-px flex-1 bg-rose-200/50" />
-                                <span className="text-[10px] text-[#841b2d]/50 font-semibold uppercase tracking-wider">or choose a preset melody</span>
-                                <div className="h-px flex-1 bg-rose-200/50" />
-                              </div>
+                                 {/* Helpful Guide for device-uploaded blob URLs */}
+                                 {selectedMusic === 'custom' && customMusicUrl && customMusicUrl.startsWith('blob:') && (
+                                   <div className="mt-2 p-2.5 rounded-xl bg-amber-50/90 border border-amber-200 text-amber-950 text-[10px] space-y-1.5">
+                                     <div className="flex items-center gap-1.5 font-bold text-amber-900">
+                                       <span className="text-sm">⚠️</span>
+                                       <span>Why recipient hears preset melody instead of your device file:</span>
+                                     </div>
+                                     <p className="text-stone-700 leading-snug">
+                                       Files uploaded from your computer/phone stay on <em>this device</em>. When she opens the link on her phone, her browser cannot read your local hard drive, so it plays the romantic piano melody as a fallback.
+                                     </p>
+                                     <div className="pt-1 flex flex-wrap items-center gap-2">
+                                       <a
+                                         href="https://catbox.moe"
+                                         target="_blank"
+                                         rel="noopener noreferrer"
+                                         className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#841b2d] hover:bg-[#681322] text-white text-[10px] font-bold transition-all shadow-2xs"
+                                       >
+                                         <span>🌐 Open Free Catbox.moe (5 sec)</span>
+                                         <ExternalLink className="w-2.5 h-2.5" />
+                                       </a>
+                                       <span className="text-stone-500 text-[9px]">
+                                         Drop your MP3 there, copy the direct link, and paste in &ldquo;Spotify or MP3 Link&rdquo;!
+                                       </span>
+                                     </div>
+                                   </div>
+                                 )}
+                               </div>
 
-                              {/* === PRESET MELODIES GRID (excludes 'custom' since it's handled above) === */}
+                               {/* Divider */}
+                               <div className="flex items-center gap-2 mb-2.5">
+                                 <div className="h-px flex-1 bg-rose-200/50" />
+                                 <span className="text-[10px] text-[#841b2d]/50 font-semibold uppercase tracking-wider">or choose a preset melody</span>
+                                 <div className="h-px flex-1 bg-rose-200/50" />
+                               </div>
+
+                               {/* === PRESET MELODIES GRID (excludes 'custom' since it's handled above) === */}
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 {ROMANTIC_MELODIES.filter(m => m.id !== 'custom').map((melody) => {
                                   const isSelected = selectedMusic === melody.id
@@ -2551,7 +2623,7 @@ export default function App() {
                             src={getShareUrl()}
                             className="w-full h-full border-0"
                             title="Type Garden Botanical Generator"
-                            allow="clipboard-write"
+                            allow="autoplay; clipboard-write"
                           />
                         </div>
                       </div>
