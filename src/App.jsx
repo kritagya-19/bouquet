@@ -2011,13 +2011,178 @@ export default function App() {
                               <div className="flex items-center justify-between mb-2">
                                 <label className="block text-[11px] uppercase tracking-wider font-bold text-[#841b2d] font-serif-display flex items-center gap-1.5">
                                   <Music className="w-3.5 h-3.5 text-[#841b2d]" />
-                                  <span>Romantic Background Music 🎶</span>
+                                  <span>Background Music 🎶</span>
                                 </label>
-                                <span className="text-[10px] text-pink-700 italic">Plays softly when she unseals letter</span>
+                                <span className="text-[10px] text-pink-700 italic">Plays softly when she opens the gift</span>
                               </div>
 
+                              {/* === YOUR OWN MUSIC (always visible at top) === */}
+                              <div className="mb-3 p-3 rounded-2xl bg-gradient-to-br from-[#fdf4f7] to-[#fef0f4] border-2 border-[#841b2d]/25 shadow-xs">
+                                <div className="flex items-center gap-2 mb-2.5">
+                                  <span className="text-base">🎵</span>
+                                  <span className="text-[11px] font-bold text-[#841b2d] uppercase tracking-wider">Add Your Own Song</span>
+                                  {selectedMusic === 'custom' && customMusicUrl && (
+                                    <span className="ml-auto text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                      <span>✓</span> Added
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* Two clear options: Upload or Link */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                  {/* Device Upload */}
+                                  <div className={`rounded-xl border transition-all overflow-hidden ${
+                                    customMusicSource === 'device' && selectedMusic === 'custom'
+                                      ? 'border-[#841b2d] bg-rose-50/80 shadow-sm ring-1 ring-[#841b2d]/20'
+                                      : 'border-rose-200/60 bg-white/80'
+                                  }`}>
+                                    <div className="p-2.5">
+                                      <div className="flex items-center gap-1.5 mb-2">
+                                        <span className="text-sm">📱</span>
+                                        <span className="text-[11px] font-bold text-[#841b2d]">Upload from Device</span>
+                                      </div>
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#841b2d] hover:bg-[#681322] text-white text-[11px] font-bold cursor-pointer transition-all shadow-xs shrink-0">
+                                          <span>📁</span>
+                                          <span>{deviceMusicFileName ? 'Change File' : 'Choose Music'}</span>
+                                          <input
+                                            type="file"
+                                            accept="audio/*"
+                                            onChange={(e) => {
+                                              setCustomMusicSource('device')
+                                              handleDeviceMusicUpload(e)
+                                            }}
+                                            className="hidden"
+                                          />
+                                        </label>
+                                        {deviceMusicFileName && selectedMusic === 'custom' && (
+                                          <span className="text-[10px] font-medium text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200/80 flex items-center gap-1 flex-1 min-w-0 max-w-full overflow-hidden">
+                                            <span className="shrink-0">✓</span>
+                                            <span className="truncate">{deviceMusicFileName}</span>
+                                          </span>
+                                        )}
+                                      </div>
+                                      <p className="text-[9px] text-stone-500 mt-1.5 leading-tight">
+                                        mp3, wav, m4a, ogg etc.
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {/* Music Link */}
+                                  <div className={`rounded-xl border transition-all overflow-hidden ${
+                                    customMusicSource === 'link' && selectedMusic === 'custom'
+                                      ? 'border-[#841b2d] bg-rose-50/80 shadow-sm ring-1 ring-[#841b2d]/20'
+                                      : 'border-rose-200/60 bg-white/80'
+                                  }`}>
+                                    <div className="p-2.5">
+                                      <div className="flex items-center gap-1.5 mb-2">
+                                        <span className="text-sm">🔗</span>
+                                        <span className="text-[11px] font-bold text-[#841b2d]">Paste Music Link</span>
+                                      </div>
+                                      <div className="flex items-center gap-1.5">
+                                        <input
+                                          type="url"
+                                          value={customMusicUrl && !customMusicUrl.startsWith('blob:') ? customMusicUrl : ''}
+                                          onChange={(e) => {
+                                            setCustomMusicSource('link')
+                                            handleMusicUrlChange(e.target.value)
+                                          }}
+                                          placeholder="https://…/song.mp3"
+                                          className="flex-1 min-w-0 px-2.5 py-1.5 text-[11px] rounded-lg border border-rose-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#841b2d]/20 text-stone-800"
+                                        />
+                                        {customMusicUrl && !customMusicUrl.startsWith('blob:') && selectedMusic === 'custom' && (
+                                          <button
+                                            type="button"
+                                            onClick={() => handleToggleMusicPreview('custom')}
+                                            title={previewPlayingMelody === 'custom' ? 'Pause' : 'Test link'}
+                                            className="p-1.5 rounded-lg bg-rose-100 hover:bg-[#841b2d] hover:text-white text-[#841b2d] transition-all cursor-pointer flex-shrink-0"
+                                          >
+                                            {previewPlayingMelody === 'custom'
+                                              ? <Pause className="w-3 h-3 fill-current" />
+                                              : <Play className="w-3 h-3 fill-current ml-0.5" />
+                                            }
+                                          </button>
+                                        )}
+                                      </div>
+                                      <p className="text-[9px] text-stone-500 mt-1.5 leading-tight">
+                                        Direct .mp3 / .wav links work best
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Song title + preview/remove row when custom music set */}
+                                {selectedMusic === 'custom' && customMusicUrl && (
+                                  <motion.div
+                                    initial={{ opacity: 0, y: -4 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="mt-2 pt-2 border-t border-rose-200/50 flex items-center gap-2"
+                                  >
+                                    <div className="flex-1">
+                                      <input
+                                        type="text"
+                                        value={customMusicTitle}
+                                        onChange={(e) => {
+                                          setCustomMusicTitle(e.target.value)
+                                          try { localStorage.setItem('bouquet_custom_music_title', e.target.value) } catch {}
+                                        }}
+                                        placeholder="Song name (shown on player badge)"
+                                        className="w-full px-2.5 py-1.5 text-[11px] rounded-lg border border-rose-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#841b2d] text-stone-800"
+                                      />
+                                    </div>
+                                    {customMusicUrl && customMusicUrl.startsWith('blob:') && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleToggleMusicPreview('custom')}
+                                        className="px-2.5 py-1.5 rounded-lg bg-rose-100 hover:bg-[#841b2d] hover:text-white text-[#841b2d] text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0"
+                                      >
+                                        {previewPlayingMelody === 'custom'
+                                          ? <><Pause className="w-3 h-3 fill-current" /><span>Pause</span></>
+                                          : <><Play className="w-3 h-3 fill-current ml-0.5" /><span>Preview</span></>
+                                        }
+                                      </button>
+                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        romanticAudio.stop()
+                                        setPreviewPlayingMelody(null)
+                                        setCustomMusicUrl('')
+                                        setDeviceMusicFileName('')
+                                        setCustomMusicTitle('')
+                                        setSelectedMusic('piano')
+                                        try {
+                                          localStorage.removeItem('bouquet_custom_music_url')
+                                          localStorage.removeItem('bouquet_custom_audio')
+                                          localStorage.removeItem('bouquet_custom_music_title')
+                                        } catch {}
+                                      }}
+                                      title="Remove custom song"
+                                      className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 transition-all cursor-pointer shrink-0"
+                                    >
+                                      <X className="w-3.5 h-3.5" />
+                                    </button>
+                                  </motion.div>
+                                )}
+
+                                {/* Warning for device-uploaded blob URLs */}
+                                {selectedMusic === 'custom' && customMusicUrl && customMusicUrl.startsWith('blob:') && (
+                                  <p className="mt-1.5 text-[9.5px] text-amber-700 bg-amber-50 border border-amber-200/60 rounded-lg px-2.5 py-1.5 leading-tight">
+                                    ⚠️ Device music plays locally. To share with the receiver over a link, paste a direct audio URL in the &ldquo;Paste Music Link&rdquo; box.
+                                  </p>
+                                )}
+                              </div>
+
+                              {/* Divider */}
+                              <div className="flex items-center gap-2 mb-2.5">
+                                <div className="h-px flex-1 bg-rose-200/50" />
+                                <span className="text-[10px] text-[#841b2d]/50 font-semibold uppercase tracking-wider">or choose a preset melody</span>
+                                <div className="h-px flex-1 bg-rose-200/50" />
+                              </div>
+
+                              {/* === PRESET MELODIES GRID (excludes 'custom' since it's handled above) === */}
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                {ROMANTIC_MELODIES.map((melody) => {
+                                {ROMANTIC_MELODIES.filter(m => m.id !== 'custom').map((melody) => {
                                   const isSelected = selectedMusic === melody.id
                                   const isPlaying = previewPlayingMelody === melody.id
 
@@ -2073,128 +2238,7 @@ export default function App() {
                                 })}
                               </div>
 
-                              {/* Custom Song Source Selection & Configuration */}
-                              {selectedMusic === 'custom' && (
-                                <motion.div
-                                  initial={{ opacity: 0, y: -6 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  className="mt-3 p-3 sm:p-4 rounded-2xl bg-[#fffbfc] border border-rose-300/80 shadow-xs space-y-3"
-                                >
-                                  <div className="flex flex-wrap items-center justify-between gap-2">
-                                    <span className="text-[11px] font-bold text-[#841b2d] font-serif-display uppercase tracking-wider flex items-center gap-1.5">
-                                      <span>🎵</span> Choose Music Source
-                                    </span>
-                                    <div className="inline-flex rounded-full bg-rose-100/70 p-0.5 border border-rose-200 text-[10px] font-semibold">
-                                      <button
-                                        type="button"
-                                        onClick={() => setCustomMusicSource('link')}
-                                        className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
-                                          customMusicSource === 'link'
-                                            ? 'bg-[#841b2d] text-white shadow-xs'
-                                            : 'text-[#841b2d] hover:text-rose-900'
-                                        }`}
-                                      >
-                                        From Link 🔗
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => setCustomMusicSource('device')}
-                                        className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
-                                          customMusicSource === 'device'
-                                            ? 'bg-[#841b2d] text-white shadow-xs'
-                                            : 'text-[#841b2d] hover:text-rose-900'
-                                        }`}
-                                      >
-                                        From Device 📁
-                                      </button>
-                                    </div>
-                                  </div>
-
-                                  {customMusicSource === 'link' ? (
-                                    <div className="space-y-1.5">
-                                      <label className="block text-[10.5px] font-bold text-stone-700">
-                                        Audio Link / Direct Stream URL:
-                                      </label>
-                                      <input
-                                        type="url"
-                                        value={customMusicUrl && !customMusicUrl.startsWith('blob:') ? customMusicUrl : ''}
-                                        onChange={(e) => handleMusicUrlChange(e.target.value)}
-                                        placeholder="e.g. https://example.com/our-song.mp3"
-                                        className="w-full px-3 py-2 text-xs rounded-xl border border-rose-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#841b2d]/20 text-stone-800 font-medium"
-                                      />
-                                      <p className="text-[9.5px] text-stone-500 leading-tight">
-                                        Direct audio links (.mp3, .wav, .m4a) play across all devices and phones when your recipient opens the bouquet.
-                                      </p>
-                                    </div>
-                                  ) : (
-                                    <div className="space-y-2">
-                                      <label className="block text-[10.5px] font-bold text-stone-700">
-                                        Select Music File from Your Phone or PC:
-                                      </label>
-                                      <div className="flex flex-wrap items-center gap-2.5">
-                                        <label className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#841b2d] hover:bg-[#681322] text-white text-xs font-bold cursor-pointer transition-all shadow-xs">
-                                          <span>📁</span>
-                                          <span>{deviceMusicFileName ? 'Change Audio File' : 'Choose Music File'}</span>
-                                          <input
-                                            type="file"
-                                            accept="audio/*"
-                                            onChange={handleDeviceMusicUpload}
-                                            className="hidden"
-                                          />
-                                        </label>
-                                        {deviceMusicFileName && (
-                                          <span className="text-[11px] font-medium text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/80 truncate max-w-[200px] flex items-center gap-1">
-                                            <span>✓</span>
-                                            <span className="truncate">{deviceMusicFileName}</span>
-                                          </span>
-                                        )}
-                                      </div>
-                                      <p className="text-[9.5px] text-stone-500 leading-tight">
-                                        Plays your custom track in the background at gentle, soft low volume.
-                                      </p>
-                                    </div>
-                                  )}
-
-                                  {/* Custom Song Title (Optional) */}
-                                  <div className="pt-2 border-t border-rose-200/50 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                                    <div className="flex-1">
-                                      <label className="block text-[10px] font-bold text-stone-700 mb-0.5">
-                                        Track Title (Displayed on player badge):
-                                      </label>
-                                      <input
-                                        type="text"
-                                        value={customMusicTitle}
-                                        onChange={(e) => {
-                                          setCustomMusicTitle(e.target.value)
-                                          try { localStorage.setItem('bouquet_custom_music_title', e.target.value) } catch {}
-                                        }}
-                                        placeholder="e.g. Our Special Song ♡"
-                                        className="w-full px-3 py-1.5 text-xs rounded-xl border border-rose-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#841b2d] text-stone-800"
-                                      />
-                                    </div>
-
-                                    {customMusicUrl && (
-                                      <button
-                                        type="button"
-                                        onClick={() => handleToggleMusicPreview('custom')}
-                                        className="self-end sm:self-auto sm:mt-4 px-3.5 py-1.5 rounded-full bg-rose-200/80 hover:bg-[#841b2d] hover:text-white text-[#841b2d] text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
-                                      >
-                                        {previewPlayingMelody === 'custom' ? (
-                                          <>
-                                            <Pause className="w-3 h-3 fill-current" />
-                                            <span>Pause</span>
-                                          </>
-                                        ) : (
-                                          <>
-                                            <Play className="w-3 h-3 fill-current ml-0.5" />
-                                            <span>Listen (Low Volume)</span>
-                                          </>
-                                        )}
-                                      </button>
-                                    )}
-                                  </div>
-                                </motion.div>
-                              )}
+                              {/* (Custom song handled by the 'Add Your Own Song' block above) */}
                             </div>
 
                             {/* Action Button: Confirm & Proceed */}
