@@ -261,6 +261,8 @@ function processPolaroidImage(file, callback) {
   reader.readAsDataURL(file)
 }
 
+const DEFAULT_HEARTFELT_NOTE = "Just a quick love letter because you've been living in my head rent-free since day one. You're my safe space, my biggest flex, and my favorite person all in one. I'm honestly so obsessed with everything about you. Thank you for being mine and for making everything feel so easy. You're a literal 10/10 and I'm never letting go."
+
 // Parse URL query parameters for gift link delivery
 function getInitialGiftData() {
   if (typeof window === 'undefined') return null
@@ -270,7 +272,7 @@ function getInitialGiftData() {
     try {
       const hashStr = window.location.hash.substring(1)
       const hashParams = new URLSearchParams(hashStr)
-      photo = hashParams.get('photo') || hashParams.get('photoUrl') || hashParams.get('img')
+      photo = hashParams.get('photo') || hashParams.get('photoUrl') || hashParams.get('img') || hashParams.get('pic')
       if (!photo) {
         const hashMatch = window.location.hash.match(/[#&]photo=([^&]+)/)
         if (hashMatch && hashMatch[1]) {
@@ -280,20 +282,31 @@ function getInitialGiftData() {
     } catch {}
   }
   const to = params.get('to')
-  const note = params.get('note')
-  if (!to && !note && !photo) return null
+  const note = params.get('note') || params.get('n')
   const from = params.get('from')
-  const wrap = params.get('wrap')
-  const preset = params.get('preset')
-  const music = params.get('music')
-  const musicUrl = params.get('musicUrl') || params.get('song')
-  const musicTitle = params.get('musicTitle')
-  const stemsParam = params.get('stems')
+  const wrap = params.get('wrap') || params.get('w')
+  const preset = params.get('preset') || params.get('p')
+  const music = params.get('music') || params.get('m')
+  const musicUrl = params.get('musicUrl') || params.get('song') || params.get('mu')
+  const musicTitle = params.get('musicTitle') || params.get('mt')
+  const stemsParam = params.get('stems') || params.get('s')
+
+  if (!to && !note && !photo && !preset && !stemsParam) return null
+
   let parsedStems = null
   if (stemsParam) {
     try {
-      const p = JSON.parse(decodeURIComponent(stemsParam))
-      if (Array.isArray(p)) parsedStems = p
+      const decoded = decodeURIComponent(stemsParam)
+      if (decoded.startsWith('[') || decoded.startsWith('{')) {
+        const p = JSON.parse(decoded)
+        if (Array.isArray(p)) parsedStems = p
+      } else {
+        parsedStems = decoded.split(',').map((part) => {
+          const [id, count] = part.split(':')
+          const cleanId = id && id.startsWith('flower-') ? id : `flower-${id}`
+          return { id: cleanId, count: parseInt(count, 10) || 1 }
+        })
+      }
     } catch {}
   }
   return { to, from, note, wrap, preset, music, musicUrl, musicTitle, photo, stems: parsedStems }
@@ -365,7 +378,7 @@ export default function App() {
       const saved = localStorage.getItem('bouquet_love_note')
       if (saved) return saved
     }
-    return "Just a quick love letter because you've been living in my head rent-free since day one. You're my safe space, my biggest flex, and my favorite person all in one. I'm honestly so obsessed with everything about you. Thank you for being mine and for making everything feel so easy. You're a literal 10/10 and I'm never letting go."
+    return DEFAULT_HEARTFELT_NOTE
   })
   // Single Memory Photo (Polaroid) for the Love Letter
   const [polaroidPhoto, setPolaroidPhoto] = useState(() => {
@@ -398,6 +411,9 @@ export default function App() {
   const [photoInputMode, setPhotoInputMode] = useState('upload') // 'upload' | 'link'
   const [photoLinkUrl, setPhotoLinkUrl] = useState('')
   const [useWifiHost, setUseWifiHost] = useState(false)
+  const [shortUrl, setShortUrl] = useState('')
+  const [isShortening, setIsShortening] = useState(false)
+  const [shortenMsg, setShortenMsg] = useState('')
 
   const handlePhotoLinkApply = (url) => {
     const trimmed = (url || '').trim()
@@ -625,51 +641,58 @@ export default function App() {
     setFlowStep('share-gift')
   }
 
-  // Generate shareable URL with parameters pointing to Type Garden
+  // Generate ultra-compact shareable URL pointing to Type Garden (< 200 characters)
   const getShareUrl = (useNetwork = useWifiHost) => {
     if (typeof window === 'undefined') return ''
     const params = new URLSearchParams()
-    params.set('to', recipientName || 'Trishna')
-    params.set('from', senderName || 'Radleigh')
-    params.set('note', loveNote)
-    params.set('wrap', selectedWrapId)
-    if (selectedMusic === 'custom') {
-      params.set('music', 'custom')
-      if (customMusicUrl && !customMusicUrl.startsWith('blob:') && !customMusicUrl.startsWith('data:')) {
-        params.set('musicUrl', customMusicUrl)
-      }
-      if (customMusicTitle) {
-        params.set('musicTitle', customMusicTitle)
-      }
-    } else {
-      params.set('music', selectedMusic || 'blue')
+    
+    // Core recipient and sender names
+    params.set('to', (recipientName || 'Trishna').trim())
+    params.set('from', (senderName || 'Radleigh').trim())
+
+    // Love Note: Only set 'n' if modified by user from default
+    // garden.html automatically displays the default heartfelt love letter if 'n' or 'note' is omitted!
+    const currentNote = (loveNote || '').trim()
+    const defaultClean = DEFAULT_HEARTFELT_NOTE.replace(/\s+/g, ' ').trim()
+    const currentClean = currentNote.replace(/\s+/g, ' ').trim()
+    if (currentNote.length > 0 && currentClean !== defaultClean) {
+      params.set('n', currentNote)
     }
 
+    // Wrap: Only set 'w' if non-default (garden.html defaults to 'blush')
+    if (selectedWrapId && selectedWrapId !== 'blush') {
+      params.set('w', selectedWrapId)
+    }
+
+    // Background Music: Only set 'm' if non-default (garden.html defaults to 'blue')
+    if (selectedMusic === 'custom') {
+      params.set('m', 'custom')
+      if (customMusicUrl && !customMusicUrl.startsWith('blob:') && !customMusicUrl.startsWith('data:')) {
+        params.set('mu', customMusicUrl)
+      }
+      if (customMusicTitle) {
+        params.set('mt', customMusicTitle)
+      }
+    } else if (selectedMusic && selectedMusic !== 'blue') {
+      params.set('m', selectedMusic)
+    }
+
+    // Preset Bouquet or Custom Atelier stems
     if (selectedPreset) {
-      // Signature Masterpiece Bouquet chosen from Gallery
       const presetClean = selectedPreset.id.replace('preset-', '')
-      params.set('preset', presetClean)
+      // garden.html defaults preset to 'rose', omit 'p' if rose to keep link tiny
+      if (presetClean !== 'rose') {
+        params.set('p', presetClean)
+      }
     } else {
-      // Custom Handcrafted Bouquet created in Atelier
-      params.set('preset', 'custom')
-      const stemsData = customStems.filter((s) => s.count > 0).map((s) => ({ id: s.id, count: s.count }))
-      params.set('stems', JSON.stringify(stemsData))
-      // Identify dominant flower in custom selection
-      if (stemsData.length > 0) {
-        let maxCount = -1
-        let topStem = null
-        stemsData.forEach((s) => {
-          if (s.count > maxCount) {
-            maxCount = s.count
-            topStem = s
-          }
-        })
-        if (topStem) {
-          if (topStem.id.includes('sunflower') || topStem.id.includes('sun')) params.set('dominant', 'sunflower')
-          else if (topStem.id.includes('lily')) params.set('dominant', 'lily')
-          else if (topStem.id.includes('tulip')) params.set('dominant', 'tulip')
-          else params.set('dominant', 'rose')
-        }
+      params.set('p', 'custom')
+      const activeStems = customStems.filter((s) => s.count > 0)
+      if (activeStems.length > 0) {
+        // Ultra-compact stem format: "s=tulip:2,lily:1,rose:1"
+        const compactStems = activeStems
+          .map((s) => `${s.id.replace('flower-', '')}:${s.count}`)
+          .join(',')
+        params.set('s', compactStems)
       }
     }
 
@@ -679,20 +702,14 @@ export default function App() {
       origin = `http://10.174.35.82:${window.location.port || '5173'}`
     }
 
-    // Direct Image URL: If user provided a web URL (http/https), pass cleanly in query string (~40 bytes)
+    // Direct Image URL: If user provided a web URL (http/https), pass cleanly in 'pic'
     if (polaroidPhoto && (polaroidPhoto.startsWith('http://') || polaroidPhoto.startsWith('https://'))) {
-      params.set('photoUrl', polaroidPhoto)
+      params.set('pic', polaroidPhoto)
     }
 
     const baseShareUrl = `${origin}/garden.html?${params.toString()}`
 
-    // CRITICAL: Base64 data URLs MUST NEVER be placed in the HTTP query string!
-    // Placing base64 in query strings causes HTTP 414 Request-URI Too Large,
-    // truncates in WhatsApp/SMS, and breaks sharing completely.
-    // Instead, append base64 to the URL Hash Fragment (#photo=...).
-    // The HTTP specification (RFC 7230) dictates that hash fragments are NEVER transmitted
-    // to the web server in HTTP requests, so Vercel/Nginx return 200 OK without any 414 error,
-    // while client-side JavaScript reads it instantly!
+    // Base64 device upload in URL hash fragment (#photo=...)
     if (polaroidPhoto && polaroidPhoto.startsWith('data:')) {
       return `${baseShareUrl}#photo=${encodeURIComponent(polaroidPhoto)}`
     }
@@ -700,9 +717,44 @@ export default function App() {
     return baseShareUrl
   }
 
+  // Active link helper (prioritizes shortened link if created, otherwise compact direct link)
+  const getActiveShareUrl = () => shortUrl || getShareUrl()
+
+  // 1-Click Short Link Generator (uses is.gd API for live domains, produces ~20 char link)
+  const handleCreateShortLink = async () => {
+    const rawUrl = getShareUrl()
+    if (rawUrl.includes('localhost') || rawUrl.includes('127.0.0.1') || rawUrl.includes('10.174.')) {
+      setShortenMsg(`Direct link is already tiny (${rawUrl.length} chars)! On live Vercel domain, this shortens to ~20 chars (is.gd).`)
+      setTimeout(() => setShortenMsg(''), 5500)
+      return
+    }
+    if (rawUrl.length > 3000) {
+      setShortenMsg('For a tiny link, select Photo "From Link 🔗" in the love letter!')
+      setTimeout(() => setShortenMsg(''), 5500)
+      return
+    }
+    setIsShortening(true)
+    setShortenMsg('')
+    try {
+      const res = await fetch(`https://is.gd/create.php?format=json&url=${encodeURIComponent(rawUrl)}`)
+      const data = await res.json()
+      if (data && data.shorturl) {
+        setShortUrl(data.shorturl)
+        setShortenMsg(`✨ Shortened to only ${data.shorturl.length} characters!`)
+      } else {
+        setShortenMsg(data.errormessage || 'Shortener busy. Direct link is already compact!')
+      }
+    } catch {
+      setShortenMsg('Direct link is already compact and ready to send!')
+    } finally {
+      setIsShortening(false)
+      setTimeout(() => setShortenMsg(''), 5500)
+    }
+  }
+
   // Copy share URL to clipboard with cross-browser fallback
   const handleCopyShareUrl = async () => {
-    const url = getShareUrl()
+    const url = getActiveShareUrl()
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(url)
@@ -732,7 +784,7 @@ export default function App() {
 
   // Native Web Share API (WhatsApp, Messages, Instagram, AirDrop)
   const handleNativeShare = async () => {
-    const url = getShareUrl()
+    const url = getActiveShareUrl()
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({
@@ -2336,7 +2388,7 @@ export default function App() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => window.open(getShareUrl(), '_blank')}
+                            onClick={() => window.open(getActiveShareUrl(), '_blank')}
                             className="w-full py-2 px-4 rounded-full bg-white border border-[#841b2d]/30 text-[#841b2d] hover:bg-rose-50 text-[11px] uppercase tracking-wider font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
@@ -2399,20 +2451,71 @@ export default function App() {
                               </div>
                             )}
 
-                          {/* Link Preview Box */}
-                          <div className="p-2.5 rounded-xl bg-rose-50/70 border border-rose-200/80 mb-3 flex items-center gap-2 text-left">
+                          {/* Character Count & Compact Status Badge */}
+                          <div className="flex items-center justify-between text-[11px] mb-2 px-1">
+                            <div className="flex items-center gap-1.5 font-medium text-[#841b2d]">
+                              <Sparkles className="w-3.5 h-3.5 text-rose-500" />
+                              <span>Share Link:</span>
+                            </div>
+                            <span
+                              className={`px-2 py-0.5 rounded-full font-mono text-[10px] font-bold border transition-all ${
+                                getActiveShareUrl().length <= 200
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                                  : 'bg-amber-50 text-amber-700 border-amber-300'
+                              }`}
+                            >
+                              {getActiveShareUrl().length} chars {getActiveShareUrl().length <= 200 ? '✓ (< 200 limit)' : ''}
+                            </span>
+                          </div>
+
+                          {/* Link Preview Box with Inline Quick-Copy */}
+                          <div className="p-2 rounded-xl bg-rose-50/70 border border-rose-200/80 mb-2 flex items-center gap-2 text-left">
                             <input
                               type="text"
                               readOnly
-                              value={getShareUrl()}
+                              value={getActiveShareUrl()}
                               className="w-full bg-transparent text-[11px] text-[#841b2d] font-mono select-all focus:outline-none truncate"
                             />
+                            <button
+                              type="button"
+                              onClick={handleCopyShareUrl}
+                              className="px-2 py-1 rounded-md bg-white hover:bg-rose-100 text-[#841b2d] border border-rose-200 text-[10px] font-bold flex items-center gap-1 cursor-pointer flex-shrink-0 transition-all shadow-2xs"
+                              title="Copy link"
+                            >
+                              {copiedLink ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                              <span>{copiedLink ? 'Copied' : 'Copy'}</span>
+                            </button>
                           </div>
+
+                          {/* 1-Click Short Link Generator Button */}
+                          <div className="mb-3">
+                            <button
+                              type="button"
+                              onClick={handleCreateShortLink}
+                              disabled={isShortening}
+                              className="w-full py-1.5 px-3 rounded-lg bg-gradient-to-r from-pink-50 to-rose-50 hover:from-pink-100 hover:to-rose-100 border border-rose-200/80 text-[#841b2d] text-[11px] font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all disabled:opacity-50"
+                            >
+                              <Sparkles className="w-3.5 h-3.5 text-rose-500" />
+                              <span>{isShortening ? 'Creating tiny link...' : shortUrl ? 'Tiny Link Active (is.gd) ✨' : 'Make Even Shorter (~20 chars) 🪄'}</span>
+                            </button>
+                            {shortenMsg && (
+                              <p className="text-[10px] text-[#841b2d]/85 mt-1 text-left px-1 italic">
+                                {shortenMsg}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Friendly hint if user has local base64 photo */}
+                          {polaroidPhoto && polaroidPhoto.startsWith('data:') && (
+                            <div className="p-2 mb-3 rounded-lg bg-rose-50/80 border border-rose-200/70 text-[10px] text-[#841b2d]/80 text-left leading-relaxed">
+                              💡 <strong>Short link tip:</strong> For an ultra-compact link under 80 chars, choose <strong>"From Link 🔗"</strong> when attaching your photo!
+                            </div>
+                          )}
 
                           {/* WhatsApp Direct Share Button */}
                           <a
                             href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
-                              `A special handcrafted bouquet is waiting for you, ${recipientName || 'my love'}! 💐 Open it here: ${getShareUrl()}`
+                              `A special handcrafted bouquet is waiting for you, ${recipientName || 'my love'}! 💐 Open it here: ${getActiveShareUrl()}`
                             )}`}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -2475,7 +2578,7 @@ export default function App() {
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
-                            onClick={() => window.open(getShareUrl(), '_blank')}
+                            onClick={() => window.open(getActiveShareUrl(), '_blank')}
                             className="px-3 py-1.5 rounded-lg bg-white/20 hover:bg-white text-white hover:text-[#841b2d] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />

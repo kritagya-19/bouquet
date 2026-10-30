@@ -1904,7 +1904,7 @@
       const confettiCanvas = document.getElementById('confetti-canvas');
       const cg = confettiCanvas.getContext('2d');
 
-      const isGiftLink = urlParams.has('to') || urlParams.has('note') || urlParams.has('preset') || urlParams.has('stems') || urlParams.has('from') || urlParams.has('photo');
+      const isGiftLink = urlParams.has('to') || urlParams.has('note') || urlParams.has('n') || urlParams.has('preset') || urlParams.has('p') || urlParams.has('stems') || urlParams.has('s') || urlParams.has('from') || urlParams.has('photo') || urlParams.has('pic');
 
       // Check stored custom inputs from App.jsx or previous direct edits ONLY if not a gift link
       let storedTo = '';
@@ -1922,9 +1922,9 @@
       const recipientTo = urlParams.get('to') || urlParams.get('for') || storedTo || 'Trishna';
       const senderFrom = urlParams.get('from') || urlParams.get('by') || storedFrom || 'Radleigh';
       const defaultHeartfeltNote = "Just a quick love letter because you've been living in my head rent-free since day one.\n\nYou're my safe space, my biggest flex, and my favorite person all in one.\n\nI'm honestly so obsessed with everything about you.\n\nThank you for being mine and for making everything feel so easy.\n\nYou're a literal 10/10 and I'm never letting go.";
-      const rawNote = urlParams.get('note') || urlParams.get('message') || storedNote || '';
+      const rawNote = urlParams.get('note') || urlParams.get('n') || urlParams.get('message') || storedNote || '';
       const noteContent = rawNote.trim().length > 0 ? rawNote : defaultHeartfeltNote;
-      const bouquetPreset = urlParams.get('preset') || 'rose';
+      const bouquetPreset = urlParams.get('preset') || urlParams.get('p') || 'rose';
 
       // Dynamically update document title for the recipient
       if (recipientTo) {
@@ -2001,10 +2001,10 @@
       }
 
       // Bouquet Resolution: Exact preset OR dominant custom flower
-      const rawPreset = (urlParams.get('preset') || '').toLowerCase().trim();
-      const dominantParam = (urlParams.get('dominant') || '').toLowerCase().trim();
-      const stemsParam = urlParams.get('stems');
-      const wrapParam = (urlParams.get('wrap') || 'blush').toLowerCase().trim();
+      const rawPreset = (urlParams.get('preset') || urlParams.get('p') || '').toLowerCase().trim();
+      const dominantParam = (urlParams.get('dominant') || urlParams.get('d') || '').toLowerCase().trim();
+      const stemsParam = urlParams.get('stems') || urlParams.get('s');
+      const wrapParam = (urlParams.get('wrap') || urlParams.get('w') || 'blush').toLowerCase().trim();
       const wrapKey = wrapParam === 'white' ? 'white' : 'blush';
 
       let finalBouquet = 'rose';
@@ -2012,11 +2012,21 @@
 
       if (rawPreset === 'custom' && stemsParam && customBouquetRender) {
         try {
-          const stemsData = JSON.parse(decodeURIComponent(stemsParam));
+          let stemsData = [];
+          const decoded = decodeURIComponent(stemsParam);
+          if (decoded.startsWith('[') || decoded.startsWith('{')) {
+            stemsData = JSON.parse(decoded);
+          } else {
+            // Shorthand format: "rose:2,lily:1"
+            stemsData = decoded.split(',').map(part => {
+              const [id, count] = part.split(':');
+              return { id: id ? id.trim() : '', count: parseInt(count, 10) || 1 };
+            });
+          }
           if (Array.isArray(stemsData) && stemsData.length > 0) {
             const flowerList = [];
             stemsData.forEach(item => {
-              const count = Math.min(6, Math.max(0, parseInt(item.count, 10) || 0));
+              const count = Math.min(6, Math.max(0, parseInt(item.count || item.c, 10) || 0));
               const id = String(item.id || '').toLowerCase();
               let imgSrc = '/flower/rose.webp';
               let name = 'Rose';
@@ -2086,7 +2096,16 @@
           finalBouquet = (dominantParam === 'sun' ? 'sunflower' : dominantParam);
         } else if (stemsParam) {
           try {
-            const stemsData = JSON.parse(decodeURIComponent(stemsParam));
+            const decoded = decodeURIComponent(stemsParam);
+            let stemsData = [];
+            if (decoded.startsWith('[') || decoded.startsWith('{')) {
+              stemsData = JSON.parse(decoded);
+            } else {
+              stemsData = decoded.split(',').map(part => {
+                const [id, count] = part.split(':');
+                return { id: id ? id.trim() : '', count: parseInt(count, 10) || 1 };
+              });
+            }
             if (Array.isArray(stemsData) && stemsData.length > 0) {
               let maxCount = -1;
               let topStemId = '';
@@ -2180,12 +2199,12 @@
       // =======================================================================
       // ROMANTIC BACKGROUND MUSIC ENGINE (blue.mp3)
       // =======================================================================
-      const musicParam = (urlParams.get('music') || '').toLowerCase().trim();
-      let customAudioUrl = urlParams.get('musicUrl') || urlParams.get('song') || '';
+      const musicParam = (urlParams.get('music') || urlParams.get('m') || '').toLowerCase().trim();
+      let customAudioUrl = urlParams.get('musicUrl') || urlParams.get('song') || urlParams.get('mu') || '';
       if (!customAudioUrl && window.location.hash) {
         try {
           const hp = new URLSearchParams(window.location.hash.substring(1));
-          customAudioUrl = hp.get('musicUrl') || hp.get('song') || '';
+          customAudioUrl = hp.get('musicUrl') || hp.get('song') || hp.get('mu') || '';
         } catch {}
       }
       if (!customAudioUrl && !isGiftLink) {
