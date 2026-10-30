@@ -198,7 +198,7 @@ const LOVE_NOTE_PROMPTS = [
   }
 ]
 
-// Helper: resize & compress uploaded polaroid image to a lightweight thumbnail (~2KB)
+// Helper: resize & compress uploaded polaroid image to an ultra-compact thumbnail (~1KB)
 function compressPolaroidImage(file, callback) {
   if (!file) return
   const reader = new FileReader()
@@ -206,8 +206,8 @@ function compressPolaroidImage(file, callback) {
     const img = new Image()
     img.onload = () => {
       const canvas = document.createElement('canvas')
-      const targetW = 150
-      const targetH = 165
+      const targetW = 60
+      const targetH = 68
       canvas.width = targetW
       canvas.height = targetH
       const ctx = canvas.getContext('2d')
@@ -241,12 +241,12 @@ function compressPolaroidImage(file, callback) {
 
       let dataUrl = ''
       try {
-        dataUrl = canvas.toDataURL('image/webp', 0.55)
+        dataUrl = canvas.toDataURL('image/webp', 0.3)
         if (!dataUrl.startsWith('data:image/webp')) {
-          dataUrl = canvas.toDataURL('image/jpeg', 0.55)
+          dataUrl = canvas.toDataURL('image/jpeg', 0.3)
         }
       } catch {
-        dataUrl = canvas.toDataURL('image/jpeg', 0.55)
+        dataUrl = canvas.toDataURL('image/jpeg', 0.3)
       }
       callback(dataUrl)
     }
@@ -261,12 +261,17 @@ function compressPolaroidImage(file, callback) {
 function getInitialGiftData() {
   if (typeof window === 'undefined') return null
   const params = new URLSearchParams(window.location.search)
-  let photo = params.get('photo') || params.get('img') || params.get('pic')
+  let photo = params.get('photo') || params.get('photoUrl') || params.get('img') || params.get('pic')
   if (!photo && window.location.hash) {
     try {
-      const hashMatch = window.location.hash.match(/[#&]photo=([^&]+)/)
-      if (hashMatch && hashMatch[1]) {
-        photo = decodeURIComponent(hashMatch[1])
+      const hashStr = window.location.hash.substring(1)
+      const hashParams = new URLSearchParams(hashStr)
+      photo = hashParams.get('photo') || hashParams.get('photoUrl') || hashParams.get('img')
+      if (!photo) {
+        const hashMatch = window.location.hash.match(/[#&]photo=([^&]+)/)
+        if (hashMatch && hashMatch[1]) {
+          try { photo = decodeURIComponent(hashMatch[1]) } catch { photo = hashMatch[1] }
+        }
       }
     } catch {}
   }
@@ -277,6 +282,8 @@ function getInitialGiftData() {
   const wrap = params.get('wrap')
   const preset = params.get('preset')
   const music = params.get('music')
+  const musicUrl = params.get('musicUrl') || params.get('song')
+  const musicTitle = params.get('musicTitle')
   const stemsParam = params.get('stems')
   let parsedStems = null
   if (stemsParam) {
@@ -285,7 +292,7 @@ function getInitialGiftData() {
       if (Array.isArray(p)) parsedStems = p
     } catch {}
   }
-  return { to, from, note, wrap, preset, music, photo, stems: parsedStems }
+  return { to, from, note, wrap, preset, music, musicUrl, musicTitle, photo, stems: parsedStems }
 }
 
 const initialGiftData = getInitialGiftData()
@@ -337,9 +344,9 @@ export default function App() {
   const [recipientName, setRecipientName] = useState(() => {
     if (initialGiftData?.to) return initialGiftData.to
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('bouquet_recipient_name') || 'Kenes'
+      return localStorage.getItem('bouquet_recipient_name') || 'Trishna'
     }
-    return 'Kenes'
+    return 'Trishna'
   })
   const [senderName, setSenderName] = useState(() => {
     if (initialGiftData?.from) return initialGiftData.from
@@ -380,12 +387,86 @@ export default function App() {
 
   const handleRemovePhoto = () => {
     setPolaroidPhoto(null)
+    setPhotoLinkUrl('')
     try { localStorage.removeItem('bouquet_custom_polaroid') } catch {}
+  }
+
+  const [photoInputMode, setPhotoInputMode] = useState('upload') // 'upload' | 'link'
+  const [photoLinkUrl, setPhotoLinkUrl] = useState('')
+  const [useWifiHost, setUseWifiHost] = useState(false)
+
+  const handlePhotoLinkApply = (url) => {
+    const trimmed = (url || '').trim()
+    setPhotoLinkUrl(trimmed)
+    if (trimmed) {
+      setPolaroidPhoto(trimmed)
+      try { localStorage.setItem('bouquet_custom_polaroid', trimmed) } catch {}
+    }
   }
 
   // Background Romantic Melody Selection
   const [selectedMusic, setSelectedMusic] = useState(initialGiftData?.music || 'piano')
   const [previewPlayingMelody, setPreviewPlayingMelody] = useState(null)
+
+  // Custom Background Music (from Link or Device)
+  const [customMusicUrl, setCustomMusicUrl] = useState(() => {
+    if (initialGiftData?.musicUrl) return initialGiftData.musicUrl
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('bouquet_custom_music_url') || localStorage.getItem('bouquet_custom_audio') || ''
+    }
+    return ''
+  })
+  const [customMusicTitle, setCustomMusicTitle] = useState(() => {
+    if (initialGiftData?.musicTitle) return initialGiftData.musicTitle
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('bouquet_custom_music_title') || ''
+    }
+    return ''
+  })
+  const [customMusicSource, setCustomMusicSource] = useState('link') // 'link' | 'device'
+  const [deviceMusicFileName, setDeviceMusicFileName] = useState('')
+
+  useEffect(() => {
+    if (customMusicUrl) {
+      romanticAudio.setCustomAudio(customMusicUrl, customMusicTitle || 'Custom Romantic Song')
+    }
+  }, [customMusicUrl, customMusicTitle])
+
+  const handleDeviceMusicUpload = (e) => {
+    const file = e.target.files && e.target.files[0]
+    if (!file) return
+    setDeviceMusicFileName(file.name)
+    const suggestedTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ')
+    if (!customMusicTitle) {
+      setCustomMusicTitle(suggestedTitle)
+    }
+    const objectUrl = URL.createObjectURL(file)
+    setCustomMusicUrl(objectUrl)
+    setSelectedMusic('custom')
+    romanticAudio.setCustomAudio(objectUrl, customMusicTitle || suggestedTitle)
+
+    if (file.size <= 4 * 1024 * 1024) {
+      const reader = new FileReader()
+      reader.onload = (uploadEvent) => {
+        try {
+          localStorage.setItem('bouquet_custom_audio', uploadEvent.target.result)
+          localStorage.setItem('bouquet_custom_music_title', suggestedTitle)
+        } catch {}
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleMusicUrlChange = (val) => {
+    setCustomMusicUrl(val)
+    if (val) {
+      setSelectedMusic('custom')
+      romanticAudio.setCustomAudio(val, customMusicTitle || 'Custom Romantic Song')
+      try {
+        localStorage.setItem('bouquet_custom_music_url', val)
+      } catch {}
+    }
+  }
 
   const handleToggleMusicPreview = (melodyId) => {
     if (previewPlayingMelody === melodyId) {
@@ -396,6 +477,9 @@ export default function App() {
         romanticAudio.stop()
         setPreviewPlayingMelody(null)
       } else {
+        if (melodyId === 'custom' && customMusicUrl) {
+          romanticAudio.setCustomAudio(customMusicUrl, customMusicTitle || 'Custom Romantic Song')
+        }
         romanticAudio.playMelody(melodyId)
         setPreviewPlayingMelody(melodyId)
       }
@@ -522,7 +606,7 @@ export default function App() {
     romanticAudio.stop()
     setPreviewPlayingMelody(null)
     try {
-      localStorage.setItem('bouquet_recipient_name', recipientName || 'Kenes')
+      localStorage.setItem('bouquet_recipient_name', recipientName || 'Trishna')
       localStorage.setItem('bouquet_sender_name', senderName || 'Radleigh')
       localStorage.setItem('bouquet_love_note', loveNote)
     } catch {}
@@ -536,14 +620,24 @@ export default function App() {
   }
 
   // Generate shareable URL with parameters pointing to Type Garden
-  const getShareUrl = () => {
+  const getShareUrl = (useNetwork = useWifiHost) => {
     if (typeof window === 'undefined') return ''
     const params = new URLSearchParams()
-    params.set('to', recipientName || 'Kenes')
+    params.set('to', recipientName || 'Trishna')
     params.set('from', senderName || 'Radleigh')
     params.set('note', loveNote)
     params.set('wrap', selectedWrapId)
-    params.set('music', selectedMusic || 'piano')
+    if (selectedMusic === 'custom') {
+      params.set('music', 'custom')
+      if (customMusicUrl && !customMusicUrl.startsWith('blob:') && !customMusicUrl.startsWith('data:')) {
+        params.set('musicUrl', customMusicUrl)
+      }
+      if (customMusicTitle) {
+        params.set('musicTitle', customMusicTitle)
+      }
+    } else {
+      params.set('music', selectedMusic || 'piano')
+    }
 
     if (selectedPreset) {
       // Signature Masterpiece Bouquet chosen from Gallery
@@ -573,11 +667,31 @@ export default function App() {
       }
     }
 
-    if (polaroidPhoto) {
-      params.set('photo', polaroidPhoto)
+    // Determine target host origin (switching to laptop's Wi-Fi LAN IP if testing on mobile phone over Wi-Fi)
+    let origin = window.location.origin
+    if (useNetwork && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      origin = `http://10.174.35.82:${window.location.port || '5173'}`
     }
 
-    return `${window.location.origin}/garden.html?${params.toString()}`
+    // Direct Image URL: If user provided a web URL (http/https), pass cleanly in query string (~40 bytes)
+    if (polaroidPhoto && (polaroidPhoto.startsWith('http://') || polaroidPhoto.startsWith('https://'))) {
+      params.set('photoUrl', polaroidPhoto)
+    }
+
+    const baseShareUrl = `${origin}/garden.html?${params.toString()}`
+
+    // CRITICAL: Base64 data URLs MUST NEVER be placed in the HTTP query string!
+    // Placing base64 in query strings causes HTTP 414 Request-URI Too Large,
+    // truncates in WhatsApp/SMS, and breaks sharing completely.
+    // Instead, append base64 to the URL Hash Fragment (#photo=...).
+    // The HTTP specification (RFC 7230) dictates that hash fragments are NEVER transmitted
+    // to the web server in HTTP requests, so Vercel/Nginx return 200 OK without any 414 error,
+    // while client-side JavaScript reads it instantly!
+    if (polaroidPhoto && polaroidPhoto.startsWith('data:')) {
+      return `${baseShareUrl}#photo=${encodeURIComponent(polaroidPhoto)}`
+    }
+
+    return baseShareUrl
   }
 
   // Copy share URL to clipboard with cross-browser fallback
@@ -1708,7 +1822,7 @@ export default function App() {
                                   setRecipientName(val)
                                   try { localStorage.setItem('bouquet_recipient_name', val) } catch {}
                                 }}
-                                placeholder="e.g. My Sweetheart, Kenes"
+                                placeholder="e.g. My Sweetheart, Trishna"
                                 className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-rose-200 bg-[#fffbfc] focus:outline-none focus:ring-2 focus:ring-[#841b2d]/20 text-[#3a141b] font-medium"
                               />
                             </div>
@@ -1779,6 +1893,32 @@ export default function App() {
                                 <span className="text-[10px] text-pink-700 italic">Displayed on her love letter polaroid</span>
                               </div>
 
+                              {/* Source Selector: From Device vs From Link */}
+                              <div className="flex items-center gap-1.5 mb-2.5">
+                                <button
+                                  type="button"
+                                  onClick={() => setPhotoInputMode('upload')}
+                                  className={`px-3 py-1 rounded-full text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                                    photoInputMode === 'upload'
+                                      ? 'bg-[#841b2d] text-white shadow-2xs'
+                                      : 'bg-rose-100/60 text-[#841b2d] hover:bg-rose-150'
+                                  }`}
+                                >
+                                  <span>From Device 📁</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setPhotoInputMode('link')}
+                                  className={`px-3 py-1 rounded-full text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                                    photoInputMode === 'link'
+                                      ? 'bg-[#841b2d] text-white shadow-2xs'
+                                      : 'bg-rose-100/60 text-[#841b2d] hover:bg-rose-150'
+                                  }`}
+                                >
+                                  <span>From Link 🔗</span>
+                                </button>
+                              </div>
+
                               <div className="flex items-center gap-4 p-3 rounded-xl border border-rose-200/80 bg-[#fffbfc] hover:border-[#841b2d] transition-all">
                                 <div className="relative w-18 h-22 rounded-lg overflow-hidden border border-rose-200/90 shadow-2xs group bg-rose-50 flex-shrink-0 flex items-center justify-center">
                                   <img
@@ -1787,21 +1927,9 @@ export default function App() {
                                     decoding="async"
                                     className="w-full h-full object-cover"
                                   />
-                                  <label className="absolute inset-0 bg-black/60 text-white text-[10px] font-bold opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity cursor-pointer text-center p-1">
-                                    <span>{polaroidPhoto ? 'Change' : 'Upload'}</span>
-                                    <input
-                                      type="file"
-                                      accept="image/*"
-                                      onChange={handlePhotoUpload}
-                                      className="hidden"
-                                    />
-                                  </label>
-                                </div>
-                                <div className="flex-1 space-y-1.5">
-                                  <div className="flex items-center gap-2">
-                                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-100/80 hover:bg-[#841b2d] hover:text-white text-[#841b2d] text-[11px] font-bold cursor-pointer transition-colors shadow-2xs">
-                                      <span>📸</span>
-                                      <span>{polaroidPhoto ? 'Change Photo' : 'Upload Couple Photo'}</span>
+                                  {photoInputMode === 'upload' && (
+                                    <label className="absolute inset-0 bg-black/60 text-white text-[10px] font-bold opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity cursor-pointer text-center p-1">
+                                      <span>{polaroidPhoto ? 'Change' : 'Upload'}</span>
                                       <input
                                         type="file"
                                         accept="image/*"
@@ -1809,16 +1937,66 @@ export default function App() {
                                         className="hidden"
                                       />
                                     </label>
-                                    {polaroidPhoto && (
-                                      <button
-                                        type="button"
-                                        onClick={handleRemovePhoto}
-                                        className="text-[10px] text-[#841b2d]/60 hover:text-rose-800 underline cursor-pointer"
-                                      >
-                                        Reset to Default
-                                      </button>
-                                    )}
-                                  </div>
+                                  )}
+                                </div>
+                                <div className="flex-1 space-y-1.5">
+                                  {photoInputMode === 'upload' ? (
+                                    <div className="flex items-center gap-2">
+                                      <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-100/80 hover:bg-[#841b2d] hover:text-white text-[#841b2d] text-[11px] font-bold cursor-pointer transition-colors shadow-2xs">
+                                        <span>📸</span>
+                                        <span>{polaroidPhoto ? 'Change Photo' : 'Upload Couple Photo'}</span>
+                                        <input
+                                          type="file"
+                                          accept="image/*"
+                                          onChange={handlePhotoUpload}
+                                          className="hidden"
+                                        />
+                                      </label>
+                                      {polaroidPhoto && (
+                                        <button
+                                          type="button"
+                                          onClick={handleRemovePhoto}
+                                          className="text-[10px] text-[#841b2d]/60 hover:text-rose-800 underline cursor-pointer"
+                                        >
+                                          Reset to Default
+                                        </button>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div className="space-y-1.5">
+                                      <div className="flex items-center gap-2">
+                                        <input
+                                          type="url"
+                                          placeholder="Paste image URL (https://...)"
+                                          value={photoLinkUrl}
+                                          onChange={(e) => setPhotoLinkUrl(e.target.value)}
+                                          onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                              e.preventDefault()
+                                              handlePhotoLinkApply(photoLinkUrl)
+                                            }
+                                          }}
+                                          className="flex-1 px-2.5 py-1 text-[11px] border border-rose-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#841b2d] bg-white text-[#841b2d]"
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() => handlePhotoLinkApply(photoLinkUrl)}
+                                          className="px-3 py-1 rounded-lg bg-[#841b2d] text-white text-[10px] font-bold uppercase tracking-wider hover:bg-[#681322] cursor-pointer"
+                                        >
+                                          Apply
+                                        </button>
+                                      </div>
+                                      {polaroidPhoto && (
+                                        <button
+                                          type="button"
+                                          onClick={handleRemovePhoto}
+                                          className="text-[10px] text-[#841b2d]/60 hover:text-rose-800 underline cursor-pointer"
+                                        >
+                                          Reset to Default
+                                        </button>
+                                      )}
+                                    </div>
+                                  )}
                                   <p className="text-[10px] text-stone-500 leading-tight">
                                     {polaroidPhoto
                                       ? 'Custom memory photo attached to her polaroid.'
@@ -1894,6 +2072,129 @@ export default function App() {
                                   )
                                 })}
                               </div>
+
+                              {/* Custom Song Source Selection & Configuration */}
+                              {selectedMusic === 'custom' && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -6 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  className="mt-3 p-3 sm:p-4 rounded-2xl bg-[#fffbfc] border border-rose-300/80 shadow-xs space-y-3"
+                                >
+                                  <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <span className="text-[11px] font-bold text-[#841b2d] font-serif-display uppercase tracking-wider flex items-center gap-1.5">
+                                      <span>🎵</span> Choose Music Source
+                                    </span>
+                                    <div className="inline-flex rounded-full bg-rose-100/70 p-0.5 border border-rose-200 text-[10px] font-semibold">
+                                      <button
+                                        type="button"
+                                        onClick={() => setCustomMusicSource('link')}
+                                        className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
+                                          customMusicSource === 'link'
+                                            ? 'bg-[#841b2d] text-white shadow-xs'
+                                            : 'text-[#841b2d] hover:text-rose-900'
+                                        }`}
+                                      >
+                                        From Link 🔗
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => setCustomMusicSource('device')}
+                                        className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
+                                          customMusicSource === 'device'
+                                            ? 'bg-[#841b2d] text-white shadow-xs'
+                                            : 'text-[#841b2d] hover:text-rose-900'
+                                        }`}
+                                      >
+                                        From Device 📁
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {customMusicSource === 'link' ? (
+                                    <div className="space-y-1.5">
+                                      <label className="block text-[10.5px] font-bold text-stone-700">
+                                        Audio Link / Direct Stream URL:
+                                      </label>
+                                      <input
+                                        type="url"
+                                        value={customMusicUrl && !customMusicUrl.startsWith('blob:') ? customMusicUrl : ''}
+                                        onChange={(e) => handleMusicUrlChange(e.target.value)}
+                                        placeholder="e.g. https://example.com/our-song.mp3"
+                                        className="w-full px-3 py-2 text-xs rounded-xl border border-rose-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#841b2d]/20 text-stone-800 font-medium"
+                                      />
+                                      <p className="text-[9.5px] text-stone-500 leading-tight">
+                                        Direct audio links (.mp3, .wav, .m4a) play across all devices and phones when your recipient opens the bouquet.
+                                      </p>
+                                    </div>
+                                  ) : (
+                                    <div className="space-y-2">
+                                      <label className="block text-[10.5px] font-bold text-stone-700">
+                                        Select Music File from Your Phone or PC:
+                                      </label>
+                                      <div className="flex flex-wrap items-center gap-2.5">
+                                        <label className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#841b2d] hover:bg-[#681322] text-white text-xs font-bold cursor-pointer transition-all shadow-xs">
+                                          <span>📁</span>
+                                          <span>{deviceMusicFileName ? 'Change Audio File' : 'Choose Music File'}</span>
+                                          <input
+                                            type="file"
+                                            accept="audio/*"
+                                            onChange={handleDeviceMusicUpload}
+                                            className="hidden"
+                                          />
+                                        </label>
+                                        {deviceMusicFileName && (
+                                          <span className="text-[11px] font-medium text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/80 truncate max-w-[200px] flex items-center gap-1">
+                                            <span>✓</span>
+                                            <span className="truncate">{deviceMusicFileName}</span>
+                                          </span>
+                                        )}
+                                      </div>
+                                      <p className="text-[9.5px] text-stone-500 leading-tight">
+                                        Plays your custom track in the background at gentle, soft low volume.
+                                      </p>
+                                    </div>
+                                  )}
+
+                                  {/* Custom Song Title (Optional) */}
+                                  <div className="pt-2 border-t border-rose-200/50 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                    <div className="flex-1">
+                                      <label className="block text-[10px] font-bold text-stone-700 mb-0.5">
+                                        Track Title (Displayed on player badge):
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={customMusicTitle}
+                                        onChange={(e) => {
+                                          setCustomMusicTitle(e.target.value)
+                                          try { localStorage.setItem('bouquet_custom_music_title', e.target.value) } catch {}
+                                        }}
+                                        placeholder="e.g. Our Special Song ♡"
+                                        className="w-full px-3 py-1.5 text-xs rounded-xl border border-rose-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#841b2d] text-stone-800"
+                                      />
+                                    </div>
+
+                                    {customMusicUrl && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleToggleMusicPreview('custom')}
+                                        className="self-end sm:self-auto sm:mt-4 px-3.5 py-1.5 rounded-full bg-rose-200/80 hover:bg-[#841b2d] hover:text-white text-[#841b2d] text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                                      >
+                                        {previewPlayingMelody === 'custom' ? (
+                                          <>
+                                            <Pause className="w-3 h-3 fill-current" />
+                                            <span>Pause</span>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Play className="w-3 h-3 fill-current ml-0.5" />
+                                            <span>Listen (Low Volume)</span>
+                                          </>
+                                        )}
+                                      </button>
+                                    )}
+                                  </div>
+                                </motion.div>
+                              )}
                             </div>
 
                             {/* Action Button: Confirm & Proceed */}
@@ -2019,6 +2320,35 @@ export default function App() {
                             Copy your private interactive gift link to send directly to her via WhatsApp, iMessage, or Instagram.
                           </p>
 
+                          {/* Cross-Device / Localhost Helper */}
+                          {typeof window !== 'undefined' &&
+                            (window.location.hostname === 'localhost' ||
+                              window.location.hostname === '127.0.0.1') && (
+                              <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200/80 mb-3 text-[11px] text-amber-950 flex flex-col sm:flex-row items-center justify-between gap-2 text-left">
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <span className="text-sm">📱</span>
+                                  <span className="leading-tight">
+                                    {useWifiHost ? (
+                                      <span>
+                                        <strong>Mobile Wi-Fi mode ON:</strong> Using laptop IP (<code>10.174.35.82</code>)
+                                      </span>
+                                    ) : (
+                                      <span>
+                                        <strong>On Localhost:</strong> Switch to Wi-Fi IP to test on mobile phone!
+                                      </span>
+                                    )}
+                                  </span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setUseWifiHost(!useWifiHost)}
+                                  className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#841b2d] text-white hover:bg-[#681322] cursor-pointer whitespace-nowrap shadow-2xs"
+                                >
+                                  {useWifiHost ? 'Switch to Localhost' : 'Use Phone Wi-Fi Link 📱'}
+                                </button>
+                              </div>
+                            )}
+
                           {/* Link Preview Box */}
                           <div className="p-2.5 rounded-xl bg-rose-50/70 border border-rose-200/80 mb-3 flex items-center gap-2 text-left">
                             <input
@@ -2032,7 +2362,7 @@ export default function App() {
                           {/* WhatsApp Direct Share Button */}
                           <a
                             href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
-                              `A special handcrafted bouquet is waiting for you, ${recipientName}! 💐 Open it here: ${getShareUrl()}`
+                              `A special handcrafted bouquet is waiting for you, ${recipientName || 'my love'}! 💐 Open it here: ${getShareUrl()}`
                             )}`}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -2161,7 +2491,7 @@ export default function App() {
                           <div className="flex items-center gap-2">
                             <span className="text-base">🌸</span>
                             <span className="font-medium">
-                              <strong>Botanical Experience:</strong> Tap &ldquo;My Love&rdquo; to watch the cinematic transition and unveil the bouquet!
+                              <strong>Botanical Experience:</strong> Tap &ldquo;Trishna&rdquo; to watch the cinematic transition and unveil the bouquet!
                             </span>
                           </div>
                           <div className="flex items-center gap-2 text-[11px] text-[#841b2d]/80 font-medium">
@@ -2301,9 +2631,6 @@ export default function App() {
                                       className="w-full h-full object-cover"
                                     />
                                   </div>
-                                  <p className="text-center font-handwriting text-xs text-rose-950/70 mt-2 tracking-wide" style={{ fontFamily: "'Patrick Hand', cursive, sans-serif" }}>
-                                    {recipientName ? `${recipientName} & ${senderName} ♡` : 'u + me = <3'}
-                                  </p>
                                 </div>
                                 <p className="font-serif italic text-sm sm:text-base text-[#3a141b] leading-relaxed whitespace-pre-wrap flex-1">
                                   &ldquo;{loveNote}&rdquo;

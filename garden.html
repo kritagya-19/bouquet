@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>My Love • Botanical Gift</title>
+  <title>Trishna • Botanical Gift</title>
   <meta name="description" content="A handcrafted botanical bouquet and personal love letter made just for you.">
   <meta property="og:title" content="A Special Botanical Delivery For You 💐">
   <meta property="og:description" content="Tap to bloom your handcrafted bouquet and unseal a romantic love note.">
@@ -1733,7 +1733,6 @@
               <div class="tucked-polaroid-frame">
                 <img id="tucked-polaroid-img" class="tucked-polaroid-img" src="/letter-assets/photo_polaroid.webp" alt="Memory" loading="lazy" decoding="async" />
               </div>
-              <div class="tucked-polaroid-chin">u + me = &lt;3</div>
             </div>
 
             <!-- Full Readable Love Message with Ruled Stationery Lines -->
@@ -1800,7 +1799,7 @@
               </svg>
             </div>
             <div class="polaroid-chin-text">
-              <span id="polaroid-name-caption">u+me=&lt;3</span>
+              <span id="polaroid-name-caption"></span>
             </div>
           </div>
 
@@ -1843,7 +1842,7 @@
               <img id="stamp-img" class="polaroid-mini-photo" src="/letter-assets/photo_mini.webp" alt="Memory" loading="lazy" decoding="async" />
             </div>
             <div class="polaroid-mini-chin">
-              <span>me + u</span>
+              <span></span>
             </div>
           </div>
 
@@ -1872,8 +1871,9 @@
     // TYPE GARDEN & TRANSITION SCRIPT
     // =========================================================================
     (function() {
+      const urlParams = new URLSearchParams(window.location.search);
       const F = '"Playfair Display", Georgia, serif';
-      const TARGET_TEXT = "My Love";
+      const TARGET_TEXT = (urlParams.get('text') || urlParams.get('to') || "Trishna").trim();
 
       // Cinematic Transition Video Asset & Playback Speed
       const TRANSITION_VIDEO_SRC = '/transition.mp4';
@@ -1941,7 +1941,6 @@
       const confettiCanvas = document.getElementById('confetti-canvas');
       const cg = confettiCanvas.getContext('2d');
 
-      const urlParams = new URLSearchParams(window.location.search);
       const isGiftLink = urlParams.has('to') || urlParams.has('note') || urlParams.has('preset') || urlParams.has('stems') || urlParams.has('from') || urlParams.has('photo');
 
       // Check stored custom inputs from App.jsx or previous direct edits ONLY if not a gift link
@@ -1957,7 +1956,7 @@
       }
 
       // URL parameters for personalization (Priority: URL > localStorage (if not gift link) > Default Reference Value)
-      const recipientTo = urlParams.get('to') || urlParams.get('for') || storedTo || 'Kenes';
+      const recipientTo = urlParams.get('to') || urlParams.get('for') || storedTo || 'Trishna';
       const senderFrom = urlParams.get('from') || urlParams.get('by') || storedFrom || 'Radleigh';
       const defaultHeartfeltNote = "Just a quick love letter because you've been living in my head rent-free since day one.\n\nYou're my safe space, my biggest flex, and my favorite person all in one.\n\nI'm honestly so obsessed with everything about you.\n\nThank you for being mine and for making everything feel so easy.\n\nYou're a literal 10/10 and I'm never letting go.";
       const rawNote = urlParams.get('note') || urlParams.get('message') || storedNote || '';
@@ -1965,7 +1964,7 @@
       const bouquetPreset = urlParams.get('preset') || 'rose';
 
       // Dynamically update document title for the recipient
-      if (recipientTo && recipientTo !== 'Kenes') {
+      if (recipientTo) {
         document.title = `For ${recipientTo} • Botanical Gift`;
       }
 
@@ -2177,12 +2176,17 @@
       // 2. URL hash parameter '#photo=...'
       // 3. Fallback to localStorage only if NOT a shared gift link from another sender
       // 4. Clean default reference polaroid
-      let photoParam = urlParams.get('photo') || urlParams.get('img') || urlParams.get('pic');
+      let photoParam = urlParams.get('photo') || urlParams.get('photoUrl') || urlParams.get('img') || urlParams.get('pic');
       if (!photoParam && window.location.hash) {
         try {
-          const hashMatch = window.location.hash.match(/[#&]photo=([^&]+)/);
-          if (hashMatch && hashMatch[1]) {
-            photoParam = decodeURIComponent(hashMatch[1]);
+          const hashStr = window.location.hash.substring(1);
+          const hashParams = new URLSearchParams(hashStr);
+          photoParam = hashParams.get('photo') || hashParams.get('photoUrl') || hashParams.get('img');
+          if (!photoParam) {
+            const hashMatch = window.location.hash.match(/[#&]photo=([^&]+)/);
+            if (hashMatch && hashMatch[1]) {
+              try { photoParam = decodeURIComponent(hashMatch[1]); } catch { photoParam = hashMatch[1]; }
+            }
           }
         } catch {}
       }
@@ -2218,11 +2222,14 @@
       const musicPlaybackState = document.getElementById('music-playback-state');
 
       const musicParam = (urlParams.get('music') || 'piano').toLowerCase().trim();
+      const musicUrlParam = urlParams.get('musicUrl') || urlParams.get('song') || '';
+      const musicTitleParam = urlParams.get('musicTitle') || '';
       const MUSIC_NAMES = {
         piano: 'Golden Hour Piano',
         musicbox: 'Vintage Music Box',
         acoustic: 'Acoustic Sunset',
         harp: 'Dreamy Fairy Harp',
+        custom: musicTitleParam || 'Custom Romantic Song',
         none: 'Silent'
       };
 
@@ -2231,6 +2238,7 @@
       let isMusicPlaying = false;
       let musicLoopTimer = null;
       let activeOscNodes = [];
+      let customAudioEl = null;
 
       function initAudio() {
         if (!audioCtx) {
@@ -2238,7 +2246,7 @@
           if (AudioContextClass) {
             audioCtx = new AudioContextClass();
             masterGain = audioCtx.createGain();
-            masterGain.gain.setValueAtTime(0.24, audioCtx.currentTime);
+            masterGain.gain.setValueAtTime(0.20, audioCtx.currentTime); // Low gentle background volume
             masterGain.connect(audioCtx.destination);
           }
         }
@@ -2385,6 +2393,28 @@
 
       function startBackgroundMusic() {
         if (musicParam === 'none' || isMusicPlaying) return;
+
+        const customSrc = musicUrlParam || (!isGiftLink ? (localStorage.getItem('bouquet_custom_music_url') || localStorage.getItem('bouquet_custom_audio')) : '');
+        if ((musicParam === 'custom' || musicUrlParam) && customSrc) {
+          if (!customAudioEl) {
+            customAudioEl = new Audio();
+            customAudioEl.loop = true;
+            customAudioEl.volume = 0.20; // Low gentle background volume
+          }
+          customAudioEl.src = customSrc;
+          customAudioEl.play().then(() => {
+            isMusicPlaying = true;
+            updateMusicUI(true);
+          }).catch(() => {
+            initAudio();
+            if (!audioCtx) return;
+            isMusicPlaying = true;
+            updateMusicUI(true);
+            scheduleMelodyLoop();
+          });
+          return;
+        }
+
         initAudio();
         if (!audioCtx) return;
         isMusicPlaying = true;
@@ -2394,6 +2424,11 @@
 
       function stopBackgroundMusic() {
         isMusicPlaying = false;
+        if (customAudioEl) {
+          try {
+            customAudioEl.pause();
+          } catch {}
+        }
         if (musicLoopTimer) {
           clearTimeout(musicLoopTimer);
           musicLoopTimer = null;
@@ -2404,7 +2439,7 @@
               gain.gain.setValueAtTime(gain.gain.value, audioCtx?.currentTime || 0);
               gain.gain.exponentialRampToValueAtTime(0.0001, (audioCtx?.currentTime || 0) + 0.08);
               osc.stop((audioCtx?.currentTime || 0) + 0.1);
-            } catch (e) {}
+            } catch {}
           });
           activeOscNodes = [];
         }
@@ -2426,7 +2461,7 @@
           return;
         }
         if (musicTrackName) {
-          musicTrackName.textContent = MUSIC_NAMES[musicParam] || 'Romantic Melody';
+          musicTrackName.textContent = MUSIC_NAMES[musicParam] || musicTitleParam || 'Custom Romantic Song';
         }
         if (musicPlaybackState) {
           musicPlaybackState.textContent = playing ? '⏸' : '▶';

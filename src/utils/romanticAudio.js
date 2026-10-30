@@ -33,6 +33,13 @@ export const ROMANTIC_MELODIES = [
     accent: '#ec4899',
   },
   {
+    id: 'custom',
+    name: 'Custom Song',
+    tagline: 'From link or device music',
+    emoji: '🎵',
+    accent: '#8b5cf6',
+  },
+  {
     id: 'none',
     name: 'No Music (Silent)',
     tagline: 'Quiet peaceful reading experience',
@@ -57,6 +64,17 @@ class RomanticAudioManager {
     this.currentMelodyId = null
     this.loopTimer = null
     this.activeNodes = []
+    this.customAudio = null
+    this.customUrl = null
+    this.customTitle = null
+  }
+
+  setCustomAudio(url, title = 'Custom Romantic Song') {
+    this.customUrl = url
+    this.customTitle = title
+    if (this.customAudio && url) {
+      this.customAudio.src = url
+    }
   }
 
   init() {
@@ -65,7 +83,7 @@ class RomanticAudioManager {
       if (AudioCtx) {
         this.ctx = new AudioCtx()
         this.masterGain = this.ctx.createGain()
-        this.masterGain.gain.setValueAtTime(0.24, this.ctx.currentTime)
+        this.masterGain.gain.setValueAtTime(0.20, this.ctx.currentTime)
         this.masterGain.connect(this.ctx.destination)
       }
     }
@@ -135,6 +153,23 @@ class RomanticAudioManager {
   playMelody(melodyId = 'piano') {
     this.stop()
     if (melodyId === 'none') return
+
+    if (melodyId === 'custom') {
+      if (this.customUrl) {
+        if (!this.customAudio && typeof window !== 'undefined') {
+          this.customAudio = new Audio()
+          this.customAudio.loop = true
+        }
+        if (this.customAudio) {
+          this.customAudio.src = this.customUrl
+          this.customAudio.volume = 0.20 // Low gentle background volume
+          this.customAudio.play().catch(() => {})
+          this.isPlaying = true
+          this.currentMelodyId = 'custom'
+        }
+      }
+      return
+    }
 
     this.init()
     if (!this.ctx) return
@@ -235,6 +270,12 @@ class RomanticAudioManager {
   stop() {
     this.isPlaying = false
     this.currentMelodyId = null
+    if (this.customAudio) {
+      try {
+        this.customAudio.pause()
+        this.customAudio.currentTime = 0
+      } catch {}
+    }
     if (this.loopTimer) {
       clearTimeout(this.loopTimer)
       this.loopTimer = null
