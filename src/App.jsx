@@ -198,60 +198,64 @@ const LOVE_NOTE_PROMPTS = [
   }
 ]
 
-// Helper: resize & compress uploaded polaroid image to an ultra-compact thumbnail (~1KB)
-function compressPolaroidImage(file, callback) {
+// Helper: process uploaded polaroid image in crystal-clear High Definition
+// Retains the original full quality and resolution so the receiver sees a crisp, beautiful photo
+function processPolaroidImage(file, callback) {
   if (!file) return
   const reader = new FileReader()
   reader.onload = (e) => {
+    const rawDataUrl = e.target.result
+
+    // For images up to ~1.2MB, keep 100% original uncompressed quality directly
+    if (file.size <= 1.2 * 1024 * 1024) {
+      callback(rawDataUrl)
+      return
+    }
+
+    // For very large camera files (e.g. 5MB-15MB from modern smartphone cameras),
+    // downscale smoothly to a crisp 1280px HD canvas with high quality 0.92
     const img = new Image()
     img.onload = () => {
+      const maxDim = 1280
+      let w = img.width
+      let h = img.height
+
+      if (w > maxDim || h > maxDim) {
+        if (w > h) {
+          h = Math.round((h * maxDim) / w)
+          w = maxDim
+        } else {
+          w = Math.round((w * maxDim) / h)
+          h = maxDim
+        }
+      }
+
       const canvas = document.createElement('canvas')
-      const targetW = 60
-      const targetH = 68
-      canvas.width = targetW
-      canvas.height = targetH
+      canvas.width = w
+      canvas.height = h
       const ctx = canvas.getContext('2d')
       if (!ctx) {
-        callback(e.target.result)
+        callback(rawDataUrl)
         return
       }
 
-      // Center-crop (cover) to preserve natural portrait framing
-      const srcW = img.width
-      const srcH = img.height
-      const targetRatio = targetW / targetH
-      const srcRatio = srcW / srcH
-
-      let renderW, renderH, offsetX, offsetY
-      if (srcRatio > targetRatio) {
-        renderH = srcH
-        renderW = srcH * targetRatio
-        offsetX = (srcW - renderW) / 2
-        offsetY = 0
-      } else {
-        renderW = srcW
-        renderH = srcW / targetRatio
-        offsetX = 0
-        offsetY = (srcH - renderH) / 2
-      }
-
-      ctx.fillStyle = '#ffffff'
-      ctx.fillRect(0, 0, targetW, targetH)
-      ctx.drawImage(img, offsetX, offsetY, renderW, renderH, 0, 0, targetW, targetH)
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = 'high'
+      ctx.drawImage(img, 0, 0, w, h)
 
       let dataUrl = ''
       try {
-        dataUrl = canvas.toDataURL('image/webp', 0.3)
+        dataUrl = canvas.toDataURL('image/webp', 0.92)
         if (!dataUrl.startsWith('data:image/webp')) {
-          dataUrl = canvas.toDataURL('image/jpeg', 0.3)
+          dataUrl = canvas.toDataURL('image/jpeg', 0.92)
         }
       } catch {
-        dataUrl = canvas.toDataURL('image/jpeg', 0.3)
+        dataUrl = canvas.toDataURL('image/jpeg', 0.92)
       }
-      callback(dataUrl)
+      callback(dataUrl || rawDataUrl)
     }
-    img.onerror = () => callback(e.target.result)
-    img.src = e.target.result
+    img.onerror = () => callback(rawDataUrl)
+    img.src = rawDataUrl
   }
   reader.onerror = () => {}
   reader.readAsDataURL(file)
@@ -379,7 +383,7 @@ export default function App() {
   const handlePhotoUpload = (e) => {
     const file = e.target.files && e.target.files[0]
     if (!file) return
-    compressPolaroidImage(file, (dataUrl) => {
+    processPolaroidImage(file, (dataUrl) => {
       setPolaroidPhoto(dataUrl)
       try { localStorage.setItem('bouquet_custom_polaroid', dataUrl) } catch {}
     })
