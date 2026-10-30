@@ -1488,6 +1488,19 @@
 <body>
 
   <!-- ============================================================= -->
+  <!-- 0. BACKGROUND MUSIC ENGINE (Autoplays /blue.mp3 on Type Garden)-->
+  <!-- ============================================================= -->
+  <audio
+    id="bg-audio"
+    src="/blue.mp3"
+    preload="auto"
+    loop
+    playsinline
+    autoplay
+    style="position: fixed; width: 1px; height: 1px; opacity: 0; pointer-events: none;"
+  ></audio>
+
+  <!-- ============================================================= -->
   <!-- 1. SCREEN 1: TYPE GARDEN ("My Love")                          -->
   <!-- ============================================================= -->
   <div id="garden-view">
@@ -2216,26 +2229,45 @@
       // Default to /blue.mp3 as background music, or custom if explicitly supplied
       const bgMusicSrc = (musicParam === 'none') ? null : (customAudioUrl || '/blue.mp3');
 
-      let bgAudioEl = null;
-      let isMusicPlaying = false;
-
-      function getOrCreateBgAudio() {
-        if (!bgMusicSrc) return null;
-        if (!bgAudioEl) {
-          bgAudioEl = new Audio();
-          bgAudioEl.loop = true;
-          bgAudioEl.volume = 0.25; // Gentle slow romantic volume
-          bgAudioEl.src = bgMusicSrc;
-          bgAudioEl.preload = 'auto';
+      // Bind to pre-parsed static audio element in DOM or construct fallback
+      let bgAudioEl = document.getElementById('bg-audio');
+      if (!bgAudioEl && bgMusicSrc) {
+        bgAudioEl = new Audio();
+        bgAudioEl.id = 'bg-audio';
+        bgAudioEl.loop = true;
+        bgAudioEl.volume = 0.25; // Gentle slow romantic volume
+        bgAudioEl.src = bgMusicSrc;
+        bgAudioEl.preload = 'auto';
+        document.body.appendChild(bgAudioEl);
+      } else if (bgAudioEl && bgMusicSrc) {
+        bgAudioEl.loop = true;
+        bgAudioEl.volume = 0.25;
+        if (customAudioUrl && bgAudioEl.src !== customAudioUrl && !bgAudioEl.src.endsWith(customAudioUrl)) {
+          bgAudioEl.src = customAudioUrl;
         }
-        return bgAudioEl;
+      }
+
+      let isMusicPlaying = false;
+      let audioCtx = null;
+
+      function unlockAudioContext() {
+        try {
+          if (!audioCtx) {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (AudioContextClass) audioCtx = new AudioContextClass();
+          }
+          if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume().catch(() => {});
+          }
+        } catch {}
       }
 
       function startBackgroundMusic() {
         if (!bgMusicSrc || isMusicPlaying) return;
-        const audio = getOrCreateBgAudio();
-        if (!audio) return;
-        const p = audio.play();
+        unlockAudioContext();
+        if (!bgAudioEl) return;
+        bgAudioEl.volume = 0.25;
+        const p = bgAudioEl.play();
         if (p !== undefined) {
           p.then(() => {
             isMusicPlaying = true;
@@ -2256,8 +2288,13 @@
         }
       }
 
-      // First-interaction listeners to guarantee music starts on all mobile and desktop browsers
-      const GESTURE_EVENTS = ['touchstart', 'touchend', 'pointerdown', 'mousedown', 'click', 'keydown', 'scroll'];
+      // Eagerly attempt to start background music immediately upon script execution on Type Garden
+      if (bgMusicSrc) {
+        startBackgroundMusic();
+      }
+
+      // Comprehensive gesture listeners to guarantee music starts on the Type Garden screen on first interaction
+      const GESTURE_EVENTS = ['touchstart', 'touchend', 'pointerdown', 'mousedown', 'click', 'keydown', 'scroll', 'pointermove', 'focus'];
       function onFirstUserGesture() {
         if (!isMusicPlaying && bgMusicSrc) {
           startBackgroundMusic();
@@ -3263,12 +3300,28 @@
       }, { passive: true });
 
       // =============================================================
-      // TAP ON TYPE GARDEN SCREEN -> TRIGGER HEART BLOOM BLANKET TRANSITION
+      // TAP ON TYPE GARDEN SCREEN -> TRIGGER TRANSITION TO BOUQUET
       // =============================================================
-      function handleGardenTap() {
+      function handleGardenTap(e) {
         startBackgroundMusic();
         if (isTransitioning || bouquetPage.classList.contains('active')) return;
-        startFlowerTransition();
+
+        const isIndicatorTap = e && tapIndicator && (e.target === tapIndicator || tapIndicator.contains(e.target));
+
+        if (isMusicPlaying || isIndicatorTap) {
+          startFlowerTransition();
+        } else {
+          // If browser blocked initial autoplay without gesture, this first touch immediately
+          // kicks off blue.mp3 on the Type Garden screen!
+          // Give receiver a moment to hear the music and watch the flowers bloom.
+          if (tapIndicator) {
+            const textSpan = tapIndicator.querySelector('.hint-text');
+            if (textSpan) textSpan.textContent = 'tap to unveil bouquet 💐';
+          }
+          setTimeout(() => {
+            isMusicPlaying = true;
+          }, 350);
+        }
       }
 
       if (gardenView) {
@@ -3355,6 +3408,7 @@
       }
 
       window.addEventListener('DOMContentLoaded', init);
+      window.addEventListener('load', startBackgroundMusic);
     })();
   </script>
 </body>

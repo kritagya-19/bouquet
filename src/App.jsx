@@ -2655,10 +2655,10 @@ export default function App() {
                         {/* Standalone Type Garden Canvas Container */}
                         <div className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-4 border-[#841b2d]/20 bg-black" style={{ height: 'min(82vh, 760px)', minHeight: '680px' }}>
                           <iframe
-                            src={getShareUrl()}
+                            src={getActiveShareUrl()}
                             className="w-full h-full border-0"
                             title="Type Garden Botanical Generator"
-                            allow="clipboard-write"
+                            allow="autoplay *; encrypted-media; fullscreen; clipboard-write"
                           />
                         </div>
                       </div>
