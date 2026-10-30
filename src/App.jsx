@@ -393,14 +393,50 @@ export default function App() {
     return null
   })
 
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
+
+  // Upload image to permanent cloud host (/api/upload -> Catbox) to get ~35-char URL
+  const uploadPhotoToCloud = async (dataUrl) => {
+    if (!dataUrl || !dataUrl.startsWith('data:')) return dataUrl
+    setIsUploadingPhoto(true)
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: dataUrl })
+      })
+      const data = await res.json()
+      if (data && data.url) {
+        setPolaroidPhoto(data.url)
+        try { localStorage.setItem('bouquet_custom_polaroid', data.url) } catch {}
+        return data.url
+      }
+    } catch (err) {
+      console.warn('Cloud upload error, retaining local fallback:', err)
+    } finally {
+      setIsUploadingPhoto(false)
+    }
+    return dataUrl
+  }
+
   const handlePhotoUpload = (e) => {
     const file = e.target.files && e.target.files[0]
     if (!file) return
-    processPolaroidImage(file, (dataUrl) => {
+    processPolaroidImage(file, async (dataUrl) => {
+      // Set immediate local preview so image appears on love letter right away
       setPolaroidPhoto(dataUrl)
       try { localStorage.setItem('bouquet_custom_polaroid', dataUrl) } catch {}
+      // Automatically shrink photo to permanent ~35 character cloud URL!
+      await uploadPhotoToCloud(dataUrl)
     })
   }
+
+  // Auto-shrink any legacy base64 photo in background
+  useEffect(() => {
+    if (polaroidPhoto && polaroidPhoto.startsWith('data:') && !isUploadingPhoto) {
+      uploadPhotoToCloud(polaroidPhoto)
+    }
+  }, [polaroidPhoto])
 
   const handleRemovePhoto = () => {
     setPolaroidPhoto(null)
@@ -720,35 +756,49 @@ export default function App() {
   // Active link helper (prioritizes shortened link if created, otherwise compact direct link)
   const getActiveShareUrl = () => shortUrl || getShareUrl()
 
-  // 1-Click Short Link Generator (uses is.gd API for live domains, produces ~20 char link)
+  // 1-Click Short Link Generator (uses is.gd API, produces ~19 char link that opens anywhere)
   const handleCreateShortLink = async () => {
-    const rawUrl = getShareUrl()
-    if (rawUrl.includes('localhost') || rawUrl.includes('127.0.0.1') || rawUrl.includes('10.174.')) {
-      setShortenMsg(`Direct link is already tiny (${rawUrl.length} chars)! On live Vercel domain, this shortens to ~20 chars (is.gd).`)
-      setTimeout(() => setShortenMsg(''), 5500)
-      return
+    let targetUrl = getShareUrl()
+    // If on localhost or private IP, map origin to live domain so is.gd can shorten it and receiver can open it!
+    if (targetUrl.includes('localhost') || targetUrl.includes('127.0.0.1') || targetUrl.includes('10.174.')) {
+      targetUrl = targetUrl.replace(/^(http:\/\/[^\/]+)/, 'https://flor-rose.vercel.app')
     }
-    if (rawUrl.length > 3000) {
-      setShortenMsg('For a tiny link, select Photo "From Link 🔗" in the love letter!')
-      setTimeout(() => setShortenMsg(''), 5500)
-      return
+    // If base64 photo is still in hash, strip hash for shortening
+    if (targetUrl.includes('#photo=')) {
+      targetUrl = targetUrl.split('#photo=')[0]
     }
+
     setIsShortening(true)
     setShortenMsg('')
     try {
-      const res = await fetch(`https://is.gd/create.php?format=json&url=${encodeURIComponent(rawUrl)}`)
-      const data = await res.json()
-      if (data && data.shorturl) {
-        setShortUrl(data.shorturl)
-        setShortenMsg(`✨ Shortened to only ${data.shorturl.length} characters!`)
+      let short = ''
+      try {
+        const res = await fetch('/api/shorten', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: targetUrl })
+        })
+        const data = await res.json()
+        if (data && data.shorturl) short = data.shorturl
+      } catch {}
+
+      if (!short) {
+        const res = await fetch(`https://is.gd/create.php?format=json&url=${encodeURIComponent(targetUrl)}`)
+        const data = await res.json()
+        if (data && data.shorturl) short = data.shorturl
+      }
+
+      if (short) {
+        setShortUrl(short)
+        setShortenMsg(`✨ Shortened to only ${short.length} characters: ${short}`)
       } else {
-        setShortenMsg(data.errormessage || 'Shortener busy. Direct link is already compact!')
+        setShortenMsg('Link is ready to copy and send!')
       }
     } catch {
-      setShortenMsg('Direct link is already compact and ready to send!')
+      setShortenMsg('Direct link is ready to send!')
     } finally {
       setIsShortening(false)
-      setTimeout(() => setShortenMsg(''), 5500)
+      setTimeout(() => setShortenMsg(''), 6000)
     }
   }
 
@@ -2505,11 +2555,17 @@ export default function App() {
                             )}
                           </div>
 
-                          {/* Friendly hint if user has local base64 photo */}
+                          {/* If photo is stored as local base64, offer one-click cloud upload to shrink URL */}
                           {polaroidPhoto && polaroidPhoto.startsWith('data:') && (
-                            <div className="p-2 mb-3 rounded-lg bg-rose-50/80 border border-rose-200/70 text-[10px] text-[#841b2d]/80 text-left leading-relaxed">
-                              💡 <strong>Short link tip:</strong> For an ultra-compact link under 80 chars, choose <strong>"From Link 🔗"</strong> when attaching your photo!
-                            </div>
+                            <button
+                              type="button"
+                              onClick={() => uploadPhotoToCloud(polaroidPhoto)}
+                              disabled={isUploadingPhoto}
+                              className="w-full mb-3 py-2 px-3 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
+                            >
+                              <Sparkles className="w-3.5 h-3.5" />
+                              <span>{isUploadingPhoto ? 'Shrinking photo to cloud... ✨' : 'Shrink Photo to 35 Chars (One-Click) 🪄'}</span>
+                            </button>
                           )}
 
                           {/* WhatsApp Direct Share Button */}
