@@ -2248,6 +2248,7 @@
       }
 
       let isMusicPlaying = false;
+      let isPlayPending = false;
       let audioCtx = null;
 
       function unlockAudioContext() {
@@ -2263,19 +2264,24 @@
       }
 
       function startBackgroundMusic() {
-        if (!bgMusicSrc || isMusicPlaying) return;
+        if (!bgMusicSrc || isMusicPlaying || isPlayPending) return;
         unlockAudioContext();
         if (!bgAudioEl) return;
         bgAudioEl.volume = 0.25;
+        isPlayPending = true;
         const p = bgAudioEl.play();
         if (p !== undefined) {
           p.then(() => {
+            isPlayPending = false;
             isMusicPlaying = true;
             removeGestureListeners();
           }).catch(() => {
-            // Autoplay blocked without user gesture; fallback to first interaction
+            isPlayPending = false;
             isMusicPlaying = false;
           });
+        } else {
+          isPlayPending = false;
+          isMusicPlaying = true;
         }
       }
 
