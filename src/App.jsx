@@ -394,11 +394,13 @@ export default function App() {
   })
 
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
+  const [photoUploadError, setPhotoUploadError] = useState('')
 
   // Upload image to permanent cloud host (/api/upload -> Catbox) to get ~35-char URL
   const uploadPhotoToCloud = async (dataUrl) => {
     if (!dataUrl || !dataUrl.startsWith('data:')) return dataUrl
     setIsUploadingPhoto(true)
+    setPhotoUploadError('')
     try {
       const res = await fetch('/api/upload', {
         method: 'POST',
@@ -410,9 +412,12 @@ export default function App() {
         setPolaroidPhoto(data.url)
         try { localStorage.setItem('bouquet_custom_polaroid', data.url) } catch {}
         return data.url
+      } else {
+        setPhotoUploadError(data?.error || 'Cloud upload failed. Tap to retry.')
       }
     } catch (err) {
-      console.warn('Cloud upload error, retaining local fallback:', err)
+      console.warn('Cloud upload error, retaining local preview:', err)
+      setPhotoUploadError('Network error uploading photo. Tap to retry.')
     } finally {
       setIsUploadingPhoto(false)
     }
@@ -422,6 +427,7 @@ export default function App() {
   const handlePhotoUpload = (e) => {
     const file = e.target.files && e.target.files[0]
     if (!file) return
+    setPhotoUploadError('')
     processPolaroidImage(file, async (dataUrl) => {
       // Set immediate local preview so image appears on love letter right away
       setPolaroidPhoto(dataUrl)
@@ -437,6 +443,13 @@ export default function App() {
       uploadPhotoToCloud(polaroidPhoto)
     }
   }, [polaroidPhoto])
+
+  // Also auto-trigger cloud upload immediately when user reaches share step
+  useEffect(() => {
+    if (flowStep === 'share-gift' && polaroidPhoto && polaroidPhoto.startsWith('data:') && !isUploadingPhoto) {
+      uploadPhotoToCloud(polaroidPhoto)
+    }
+  }, [flowStep])
 
   const handleRemovePhoto = () => {
     setPolaroidPhoto(null)
@@ -738,19 +751,13 @@ export default function App() {
       origin = `http://10.174.35.82:${window.location.port || '5173'}`
     }
 
-    // Direct Image URL: If user provided a web URL (http/https), pass cleanly in 'pic'
+    // Direct Image URL: Only clean cloud URLs (http/https) are passed in 'pic' parameter
+    // Base64 data is NEVER placed in URL to guarantee ultra-short links and prevent broken/blank images
     if (polaroidPhoto && (polaroidPhoto.startsWith('http://') || polaroidPhoto.startsWith('https://'))) {
       params.set('pic', polaroidPhoto)
     }
 
-    const baseShareUrl = `${origin}/garden.html?${params.toString()}`
-
-    // Base64 device upload in URL hash fragment (#photo=...)
-    if (polaroidPhoto && polaroidPhoto.startsWith('data:')) {
-      return `${baseShareUrl}#photo=${encodeURIComponent(polaroidPhoto)}`
-    }
-
-    return baseShareUrl
+    return `${origin}/garden.html?${params.toString()}`
   }
 
   // Active link helper (prioritizes shortened link if created, otherwise compact direct link)
@@ -761,11 +768,7 @@ export default function App() {
     let targetUrl = getShareUrl()
     // If on localhost or private IP, map origin to live domain so is.gd can shorten it and receiver can open it!
     if (targetUrl.includes('localhost') || targetUrl.includes('127.0.0.1') || targetUrl.includes('10.174.')) {
-      targetUrl = targetUrl.replace(/^(http:\/\/[^\/]+)/, 'https://flor-rose.vercel.app')
-    }
-    // If base64 photo is still in hash, strip hash for shortening
-    if (targetUrl.includes('#photo=')) {
-      targetUrl = targetUrl.split('#photo=')[0]
+      targetUrl = targetUrl.replace(/^(http:\/\/[^\/]+)/, 'https://bouquet-gamma-five.vercel.app')
     }
 
     setIsShortening(true)
@@ -2049,25 +2052,50 @@ export default function App() {
                                 </div>
                                 <div className="flex-1 space-y-1.5">
                                   {photoInputMode === 'upload' ? (
-                                    <div className="flex items-center gap-2">
-                                      <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-100/80 hover:bg-[#841b2d] hover:text-white text-[#841b2d] text-[11px] font-bold cursor-pointer transition-colors shadow-2xs">
-                                        <span>📸</span>
-                                        <span>{polaroidPhoto ? 'Change Photo' : 'Upload Couple Photo'}</span>
-                                        <input
-                                          type="file"
-                                          accept="image/*"
-                                          onChange={handlePhotoUpload}
-                                          className="hidden"
-                                        />
-                                      </label>
-                                      {polaroidPhoto && (
-                                        <button
-                                          type="button"
-                                          onClick={handleRemovePhoto}
-                                          className="text-[10px] text-[#841b2d]/60 hover:text-rose-800 underline cursor-pointer"
-                                        >
-                                          Reset to Default
-                                        </button>
+                                    <div className="space-y-1.5">
+                                      <div className="flex items-center gap-2">
+                                        <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-100/80 hover:bg-[#841b2d] hover:text-white text-[#841b2d] text-[11px] font-bold cursor-pointer transition-colors shadow-2xs">
+                                          <span>📸</span>
+                                          <span>{polaroidPhoto ? 'Change Photo' : 'Upload Couple Photo'}</span>
+                                          <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handlePhotoUpload}
+                                            className="hidden"
+                                          />
+                                        </label>
+                                        {polaroidPhoto && (
+                                          <button
+                                            type="button"
+                                            onClick={handleRemovePhoto}
+                                            className="text-[10px] text-[#841b2d]/60 hover:text-rose-800 underline cursor-pointer"
+                                          >
+                                            Reset
+                                          </button>
+                                        )}
+                                      </div>
+                                      {isUploadingPhoto && (
+                                        <div className="flex items-center gap-1.5 text-[10px] text-rose-700 font-semibold animate-pulse">
+                                          <Sparkles className="w-3 h-3 text-rose-500 animate-spin" />
+                                          <span>Uploading photo to cloud for recipient... ☁️</span>
+                                        </div>
+                                      )}
+                                      {!isUploadingPhoto && photoUploadError && (
+                                        <div className="flex items-center gap-1.5 text-[10px] text-amber-700">
+                                          <span>⚠️ {photoUploadError}</span>
+                                          <button
+                                            type="button"
+                                            onClick={() => uploadPhotoToCloud(polaroidPhoto)}
+                                            className="font-bold underline text-amber-900 cursor-pointer"
+                                          >
+                                            Retry
+                                          </button>
+                                        </div>
+                                      )}
+                                      {!isUploadingPhoto && polaroidPhoto && (polaroidPhoto.startsWith('http://') || polaroidPhoto.startsWith('https://')) && (
+                                        <div className="text-[10px] text-emerald-700 font-semibold">
+                                          ✨ Cloud link ready — recipient will see it in full quality!
+                                        </div>
                                       )}
                                     </div>
                                   ) : (
@@ -2555,40 +2583,63 @@ export default function App() {
                             )}
                           </div>
 
-                          {/* If photo is stored as local base64, offer one-click cloud upload to shrink URL */}
+                          {/* Photo cloud upload status */}
                           {polaroidPhoto && polaroidPhoto.startsWith('data:') && (
-                            <button
-                              type="button"
-                              onClick={() => uploadPhotoToCloud(polaroidPhoto)}
-                              disabled={isUploadingPhoto}
-                              className="w-full mb-3 py-2 px-3 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
-                            >
-                              <Sparkles className="w-3.5 h-3.5" />
-                              <span>{isUploadingPhoto ? 'Shrinking photo to cloud... ✨' : 'Shrink Photo to 35 Chars (One-Click) 🪄'}</span>
-                            </button>
+                            <div className="mb-3 p-2.5 rounded-xl bg-amber-50 border border-amber-300 text-left">
+                              <div className="flex items-center gap-1.5 mb-1">
+                                <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-spin" />
+                                <p className="text-[11px] text-amber-900 font-bold">
+                                  {isUploadingPhoto ? 'Uploading photo to cloud... ☁️' : 'Photo upload pending'}
+                                </p>
+                              </div>
+                              <p className="text-[10px] text-amber-800 mb-1.5 leading-tight">
+                                {isUploadingPhoto
+                                  ? 'Wait a moment so your recipient receives the photo in high resolution!'
+                                  : "Upload your photo to cloud so your recipient's letter displays it."}
+                              </p>
+                              {!isUploadingPhoto && (
+                                <button
+                                  type="button"
+                                  onClick={() => uploadPhotoToCloud(polaroidPhoto)}
+                                  className="w-full py-1.5 px-3 rounded-lg bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white text-[11px] font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                                >
+                                  <Sparkles className="w-3.5 h-3.5" />
+                                  <span>Upload Photo to Cloud Now 🪄</span>
+                                </button>
+                              )}
+                            </div>
+                          )}
+                          {polaroidPhoto && !polaroidPhoto.startsWith('data:') && !polaroidPhoto.startsWith('blob:') && (
+                            <p className="text-[10px] text-emerald-700 font-semibold mb-2 text-center">✅ Full HD Photo linked — recipient will see it! 💕</p>
                           )}
 
                           {/* WhatsApp Direct Share Button */}
                           <a
-                            href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
+                            href={isUploadingPhoto ? '#' : `https://api.whatsapp.com/send?text=${encodeURIComponent(
                               `A special handcrafted bouquet is waiting for you, ${recipientName || 'my love'}! 💐 Open it here: ${getActiveShareUrl()}`
                             )}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-full py-2.5 px-4 mb-2 rounded-xl bg-[#25D366]/15 hover:bg-[#25D366] text-[#128C7E] hover:text-white text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer border border-[#25D366]/30"
+                            onClick={(e) => { if (isUploadingPhoto) e.preventDefault(); }}
+                            className={`w-full py-2.5 px-4 mb-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border ${
+                              isUploadingPhoto
+                                ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed pointer-events-none'
+                                : 'bg-[#25D366]/15 hover:bg-[#25D366] text-[#128C7E] hover:text-white cursor-pointer border-[#25D366]/30'
+                            }`}
                           >
                             <MessageCircle className="w-4 h-4" />
-                            <span>Send via WhatsApp</span>
+                            <span>{isUploadingPhoto ? 'Uploading photo... ⏳' : 'Send via WhatsApp'}</span>
                           </a>
                           {/* Native Share Button (for mobile share sheet: WhatsApp, iMessage, Instagram, AirDrop) */}
                           {typeof navigator !== 'undefined' && !!navigator.share && (
                             <button
                               type="button"
                               onClick={handleNativeShare}
-                              className="w-full py-2.5 px-4 mb-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                              disabled={isUploadingPhoto}
+                              className="w-full py-2.5 px-4 mb-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <Send className="w-4 h-4" />
-                              <span>Share via Any App 📱</span>
+                              <span>{isUploadingPhoto ? 'Uploading photo... ⏳' : 'Share via Any App 📱'}</span>
                             </button>
                           )}
                         </div>
@@ -2596,10 +2647,11 @@ export default function App() {
                         <button
                           type="button"
                           onClick={handleCopyShareUrl}
-                          className="w-full py-3.5 px-6 rounded-full bg-[#841b2d] hover:bg-[#681322] text-white text-xs uppercase tracking-widest font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+                          disabled={isUploadingPhoto}
+                          className="w-full py-3.5 px-6 rounded-full bg-[#841b2d] hover:bg-[#681322] text-white text-xs uppercase tracking-widest font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {copiedLink ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                          <span>{copiedLink ? 'Link Copied to Clipboard!' : 'Copy Private Gift Link'}</span>
+                          <span>{isUploadingPhoto ? 'Uploading Photo...' : copiedLink ? 'Link Copied to Clipboard!' : 'Copy Private Gift Link'}</span>
                         </button>
                       </ScallopCard>
                     </div>
