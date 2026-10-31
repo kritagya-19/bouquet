@@ -2248,7 +2248,6 @@
       }
 
       let isMusicPlaying = false;
-      let isPlayPending = false;
       let audioCtx = null;
 
       function unlockAudioContext() {
@@ -2264,24 +2263,24 @@
       }
 
       function startBackgroundMusic() {
-        if (!bgMusicSrc || isMusicPlaying || isPlayPending) return;
+        if (!bgMusicSrc || isMusicPlaying) return;
         unlockAudioContext();
         if (!bgAudioEl) return;
         bgAudioEl.volume = 0.25;
-        isPlayPending = true;
-        const p = bgAudioEl.play();
-        if (p !== undefined) {
-          p.then(() => {
-            isPlayPending = false;
+        try {
+          const p = bgAudioEl.play();
+          if (p !== undefined) {
+            p.then(() => {
+              isMusicPlaying = true;
+              removeGestureListeners();
+            }).catch(() => {
+              isMusicPlaying = false;
+            });
+          } else {
             isMusicPlaying = true;
-            removeGestureListeners();
-          }).catch(() => {
-            isPlayPending = false;
-            isMusicPlaying = false;
-          });
-        } else {
-          isPlayPending = false;
-          isMusicPlaying = true;
+          }
+        } catch {
+          isMusicPlaying = false;
         }
       }
 
@@ -2294,27 +2293,29 @@
         }
       }
 
-      // Eagerly attempt to start background music immediately upon script execution on Type Garden
+      // Eagerly attempt to start background music immediately upon script execution
       if (bgMusicSrc) {
         startBackgroundMusic();
       }
 
-      // Comprehensive gesture listeners to guarantee music starts on the Type Garden screen on first interaction
-      const GESTURE_EVENTS = ['touchstart', 'touchend', 'pointerdown', 'mousedown', 'click', 'keydown', 'scroll', 'pointermove', 'focus'];
+      // Fast-trigger gesture listeners (captures physical touch/click on screen)
+      const GESTURE_EVENTS = ['pointerdown', 'touchstart', 'touchend', 'mousedown', 'click', 'keydown'];
       function onFirstUserGesture() {
         if (!isMusicPlaying && bgMusicSrc) {
           startBackgroundMusic();
         }
       }
       function removeGestureListeners() {
-        GESTURE_EVENTS.forEach(ev =>
-          window.removeEventListener(ev, onFirstUserGesture, { capture: true })
-        );
+        GESTURE_EVENTS.forEach(ev => {
+          window.removeEventListener(ev, onFirstUserGesture, { capture: true });
+          document.removeEventListener(ev, onFirstUserGesture, { capture: true });
+        });
       }
       if (bgMusicSrc) {
-        GESTURE_EVENTS.forEach(ev =>
-          window.addEventListener(ev, onFirstUserGesture, { capture: true, passive: true })
-        );
+        GESTURE_EVENTS.forEach(ev => {
+          window.addEventListener(ev, onFirstUserGesture, { capture: true, passive: true });
+          document.addEventListener(ev, onFirstUserGesture, { capture: true, passive: true });
+        });
       }
 
       // When receiver leaves the website (switches tab, minimizes, or closes page), stop the music
@@ -2331,6 +2332,9 @@
       });
       window.addEventListener('beforeunload', () => {
         stopBackgroundMusic();
+      });
+      window.addEventListener('pageshow', () => {
+        if (bgMusicSrc && !isMusicPlaying) startBackgroundMusic();
       });
 
       // Type Garden Engine Variables
@@ -3311,23 +3315,7 @@
       function handleGardenTap(e) {
         startBackgroundMusic();
         if (isTransitioning || bouquetPage.classList.contains('active')) return;
-
-        const isIndicatorTap = e && tapIndicator && (e.target === tapIndicator || tapIndicator.contains(e.target));
-
-        if (isMusicPlaying || isIndicatorTap) {
-          startFlowerTransition();
-        } else {
-          // If browser blocked initial autoplay without gesture, this first touch immediately
-          // kicks off blue.mp3 on the Type Garden screen!
-          // Give receiver a moment to hear the music and watch the flowers bloom.
-          if (tapIndicator) {
-            const textSpan = tapIndicator.querySelector('.hint-text');
-            if (textSpan) textSpan.textContent = 'tap to unveil bouquet 💐';
-          }
-          setTimeout(() => {
-            isMusicPlaying = true;
-          }, 350);
-        }
+        startFlowerTransition();
       }
 
       if (gardenView) {
